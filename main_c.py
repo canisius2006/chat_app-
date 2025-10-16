@@ -1,3 +1,6 @@
+#-------------------------------------------------Script principale côté client --------------------------------------------------
+#
+#---------------------------------------------------------------------------------------------------------------------------------
 import customtkinter as ctk
 import socket
 from threading import Thread
@@ -470,3 +473,4 @@ class app(ctk.CTk):
         self.after(500,self.monter_en_haut)
 #Ici, on a l'exécution de notre app
 app()
+
