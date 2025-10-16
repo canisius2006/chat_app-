@@ -1,3 +1,7 @@
+#---------------------------------Script principal côté serveur --------------------------------------------------------
+#
+#--------------------------------------------------------------------------------------------------------------------
+
 #Ici, on importe les modules dont nous aurons besoin pour la suite
 import socket as st
 from threading import Thread
@@ -190,4 +194,5 @@ while instance :
             print('choix inexistant')
             continue
     except:
+
         break
