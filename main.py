@@ -1,7 +1,3 @@
-#---------------------------------Script principal côté serveur --------------------------------------------------------
-#
-#--------------------------------------------------------------------------------------------------------------------
-
 #Ici, on importe les modules dont nous aurons besoin pour la suite
 import socket as st
 from threading import Thread
@@ -32,8 +28,10 @@ class special:
                 self.taille = int(self.taille)
                 self.msg = self.client.recv(self.taille)
                 self.msg_decoder = {'news':json.loads(self.msg.decode())}
-   
-            except:
+
+            except ConnectionResetError or BrokenPipeError:  # En cas de problème de déconnexion 
+                self.verification = False 
+            except AttributeError:
                 pass
     def arret(self):
         """Cette fonction va me permettre d'arrêter l'exécution l'envoie du message"""
@@ -69,7 +67,7 @@ class connexion:
     def connexion_serveur(self):
         """Cette fonction va nous permettre de gérer la connexion du côté serveur"""
         while True:
-            self.rlist,wlist,xlist = select.select([self.connexion_principale],[],[],0.05)
+            self.rlist,_,self.xlist = select.select([self.connexion_principale],[],[self.connexion_principale],0.05)
             for connect in self.rlist :
                 self.connexion,self.info = connect.accept()
                 instance = special(self.connexion)
@@ -97,6 +95,13 @@ class chacun:
     def envoyer_bonne_personne(self):
         """Cette fonction va nous permettre d'envoyer le message à la bonne personne"""
         while self.feu_vert:
+
+            #Vérification si la personne s'est déconnecté 
+            if self.mon_client[0].verification == False: 
+        
+                self.feu_vert = False 
+                
+            
             try:
                 self.message_recu = self.mon_client[0].msg_decoder['news']
                 
@@ -105,27 +110,30 @@ class chacun:
                    # logging.info(str(self.message_recu)) #Un peu de log pour être rassuré 
                     if self.message_recu['destinataire'] == 'ordinateur':
                         self.base_de_equivalence[self.message_recu['encodeur']]=self.mon_client[1] 
+                        self.moi = self.message_recu['encodeur']
 
                     else: #Autrement, on l'envoie à la bonne personne
-                        self.envoyer_message(self.base_de_equivalence[self.message_recu['destinataire']],self.message_recu)#Et ici, le travail est fait
+                        self.envoyer_message(self.base_de_equivalence.get(self.message_recu['destinataire']),self.message_recu)#Et ici, le travail est fait
                         self.mon_client[0].arret()  
-        
-                else :
+                    
+                else:
                     pass
-            except ConnectionResetError or BrokenPipeError:  # En cas de problème de déconnexion 
-                pass                
+
             except AttributeError: #Ici, passe si self.message_recu a un problème 
                 pass 
+            
     def envoyer_message(self,destinataire, message):
         """Cette fonction va nous permettre d'envoyer un message """
         self.message = message
         self.destinateur = destinataire
-       
-        self.donnee_json = json.dumps(self.message,ensure_ascii=False).encode()
-        self.taille = len(self.donnee_json)
-        self.destinateur.sendall(f"{self.taille:08d}".encode())
-        self.destinateur.sendall(self.donnee_json)
-        self.message = None #C'est vraiment important le nettoyage surtout dans mon cas
+        if self.destinateur:
+            self.donnee_json = json.dumps(self.message,ensure_ascii=False).encode()
+            self.taille = len(self.donnee_json)
+            self.destinateur.sendall(f"{self.taille:08d}".encode())
+            self.destinateur.sendall(self.donnee_json)
+            self.message = None #C'est vraiment important le nettoyage surtout dans mon cas
+        else:
+            pass 
 
 
 class cerveau:
@@ -152,7 +160,19 @@ class cerveau:
                         if self.dictio_important.get(element).feu_vert == True :
                             pass 
                         else:
-                            pass 
+                            print(0)
+                            #Ici, on le supprime de la base 
+                            y = self.base.pop(self.dictio_important.get(element).moi)
+                            self.instance_connexion.liste_des_ecoutes.remove(element)
+                            self.instance_connexion._liste_secondaire.remove(element[0])
+                            #Ici, on l'éfface de la rlist 
+                            self.instance_connexion.rlist = list(set(self.instance_connexion.rlist) - set(self.instance_connexion.xlist))
+                            self.instance_connexion.xlist.clear()
+                            x = self.dictio_important.pop(element)
+                            #Libération des ressources de la mémoire 
+                            self.liste_des_chacuns.remove(element)
+                        
+                            del element,x ,y  
                     
                     else :
                         classe = chacun(element,self.base)
@@ -194,5 +214,4 @@ while instance :
             print('choix inexistant')
             continue
     except:
-
         break
