@@ -1,6 +1,3 @@
-#-------------------------------------------------Script principale côté client --------------------------------------------------
-#
-#---------------------------------------------------------------------------------------------------------------------------------
 import customtkinter as ctk
 import socket
 from threading import Thread
@@ -144,12 +141,16 @@ class reception:
         """Cette fonction va nous permettre d'accorder un thread à chaque connexion"""
         Thread(target = self.recevoir_message,daemon = True).start()
 
+
+
 class fenetre(ctk.CTkFrame):
     """C'est la classe pour notre fenetre principal d'essai, je vais le faire de façon basique, juste pour pouvoir expérimenter ça"""
     def __init__(self,master,serveur,ami):
         super().__init__(master)
         self.serveur = serveur
         self.ami = ami
+        self.compteur = 0 #Cette variable va nous permettre de compter le nombre de message non lu 
+
         self.auto = True # Cette variable pour savoir s'il faut autoriser le self message, c'est un comportement bizarre que j'ai abrégé
         self.si_placer = False # Cette variable va nous permettre de savoir si ça a été déjà placé , je parle de l'écran 
         #Ici, on place les widgets
@@ -162,6 +163,7 @@ class fenetre(ctk.CTkFrame):
         #Un autre créer , à cause de la fonction copier que nous avons fait
         self.master.bind('<Button-1>',self.fonction_copier_release)
         self.already_send = False 
+        
     def sur_ecran(self):
         """Cette fonction va nous permettre de placer le widget sur l'écran """
         #Ici, on va packer la fenêtre sur l'écran afin d'utiliser lift de l'autre côté 
@@ -189,10 +191,10 @@ class fenetre(ctk.CTkFrame):
         """C'est la fonction de créaction des widgets dont nous aurons besoin pour la suite"""
         self.frame_command = ctk.CTkFrame(self,fg_color='ivory')    
         #La frame qui va porter les élements des messages, autrement les élement envoyer
-        self.frame_canva = ctk.CTkScrollableFrame(self,fg_color='white',corner_radius=10,scrollbar_button_color='white')
+        self.frame_canva = ctk.CTkScrollableFrame(self,fg_color='white',corner_radius=10,scrollbar_button_color='white',border_width=2,border_color="blue")
         self.frame_canva.place(relx=0,rely=0.05,relheight=0.80,relwidth=1)
         #Ici, on crée une frame qui va nous permettre de placer les autres éléments input
-        self.entree = ctk.CTkTextbox(self.frame_command,font=('Segoe UI Emoji',20),corner_radius=10,wrap='word')
+        self.entree = ctk.CTkTextbox(self.frame_command,font=('Segoe UI Emoji',20),corner_radius=10,wrap='word',border_color='black',border_width=2)
         self.bouton_envoyer = ctk.CTkButton(self.frame_command,text='-->',corner_radius=10,font=('Segoe UI Emoji',25),fg_color='blue')
         self.frame_command.place(relx = 0,rely = 0.85,relheight = 0.15,relwidth = 1)
         self.entree.place(relx = 0,rely = 0,relheight = 1,relwidth = 0.8)
@@ -269,12 +271,13 @@ class fenetre(ctk.CTkFrame):
     def afficher_message_recu(self,message_recu):
         """Cette fonction va nous permettre d'afficher les messages reçus sur l'écran"""
         if self.auto: #Cette variable nous permet de pouvoir enlever l'option écrire à soi même 
-            ok = ctk.CTkLabel(self.frame_canva,text=message_recu,wraplength=250,corner_radius=10,font=('Segoe UI Emoji',20),fg_color='grey',text_color='white')
+            ok = ctk.CTkLabel(self.frame_canva,text=message_recu,wraplength=250,corner_radius=10,font=('Segoe UI Emoji',20),fg_color="#B7C2DF",text_color='black')
             ok.pack(side=ctk.TOP,anchor='nw')
             ok.bind('<Button-3>',lambda e :self.fonction_copier_enter(e,ok))
             #Ici, je vais déplacer la scale vers le bas
             self.frame_canva.update_idletasks()
             self.frame_canva._parent_canvas.yview_moveto(1.0)
+            self.compteur += 1 # Ici, on compte le nombre de message reçu 
         else:
             pass 
         
@@ -294,9 +297,12 @@ class app(ctk.CTk):
         ctk.set_default_color_theme('blue')
         #Ici, on créer un dictionnaire pour chaque connexion pour pouvoir vite se réperer afin d'attribuer les messages aux bonnes personnes
         self.base_de_fenetre = {} 
+        self.fenetre_actuelle = None 
+        self.con = [] #C'est une liste qui va me permettre d'exécuter cette fonction conne des boutons
         self.inscription()
         #Ici, un thread pour pouvoir faire quelque chose 
         Thread(target = self.after,args = (500,self.monter_en_haut),daemon = True).start()
+       
         #Le fameux mainloop
         self.mainloop()
 
@@ -353,7 +359,7 @@ class app(ctk.CTk):
         #Self.boite 1 sera la boite qui prendra en compte la recherche de personne 
         self.boite_1 = ctk.CTkScrollableFrame(self,fg_color='white')
         self.boite_1.place(relx = 0,rely = 0.1,relheight = 1,relwidth = 0.5)
-        self.entete = ctk.CTkLabel(self.boite_1,text="Liste des contacts disponibles",wraplength=200,text_color='white',font=('Helvetica',14),fg_color='blue',corner_radius=10)
+        self.entete = ctk.CTkLabel(self.boite_1,text="Liste des contacts disponibles",wraplength=200,text_color='blue',font=('Helvetica',14),fg_color="#ABB2BF",corner_radius=10)
         self.entete.pack(fill='x')
         #Dans cet deuxième frame que je vais créer, ce sera possible d'afficher un message de bienvenue au client 
         self.boite_2 = ctk.CTkFrame(self,corner_radius=15,fg_color='white')
@@ -365,8 +371,16 @@ class app(ctk.CTk):
         """Cette fonction va nous permettre de faire le bon choix entre packer ou lifter"""
         boite.sur_ecran()
         boite.lift()
-            
-            
+   
+    def obtenir_nom(self,nouko:str):
+        """C'est une fonction qui va nous permettre d'obtenir les noms d'utilisateurs adéquats dans certains cas de fonctions"""  
+        if nouko == self.name:
+            return self.name + '(Vous)'
+        elif nouko == 'messagerie01234':
+            return 'Messagerie NCZ '
+        else:
+            return nouko 
+        
     def creation_fenetre_specifique(self):
         """Cette fonction va nous permettre de créer une fenêtre pour chaque connexion"""
         self.liste_amis = self.deuxieme_instance.liste_des_amis 
@@ -374,14 +388,14 @@ class app(ctk.CTk):
         for element in self.liste_amis:
             self.verificateur = list(self.base_de_fenetre.keys())
 
-            if element[1] in self.verificateur and element[0]=='actif' and element[1]!='messagerie01234': #C'est l'élement 1 que j'ajoute à mon dictionnaire 
+            if element[1] in self.verificateur and element[0]=='actif' and element[1]!='messagerie01234' and element[1]!=self.name   : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
                 ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
-                ajout[2].configure(text=element[1] +'(En ligne)')
+                ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
                 
             
             elif element[1] == self.name and element[0]=='actif':
                 a = fenetre(self,self.instance,element[1])
-                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text=f'{element[1].capitalize()} (Vous )')
+                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
                 b.pack(fill='x')
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text='Vous ',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
@@ -390,7 +404,8 @@ class app(ctk.CTk):
                 self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire  
                 a.auto = False # Il ne peut plus s'écrire à lui-même 
                 #Configuration de la fonction du bouton 
-                b.configure(command = lambda a = a:self.meilleur_choix(a))
+                d = element[1]
+                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
                 
 
@@ -399,7 +414,7 @@ class app(ctk.CTk):
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text="Messagerie NCZ",font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
-                b =ctk.CTkButton(self.boite_1,font=('Helvetica',14),text="Messagerie NCZ") 
+                b =ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text="Messagerie NCZ") 
                 b.pack(fill='x')
                 #Ajout à la base de fenêtre 
                 self.base_de_fenetre[element[1]] = (a,b,c)#x parce que c'est une variable temporaire 
@@ -407,10 +422,11 @@ class app(ctk.CTk):
                 a.bouton_envoyer.place_forget()
                 ctk.CTkLabel(a.frame_command,text='Vous ne pouvez pas repondre à cette discussion',wraplength=200,text_color='blue',fg_color='white',font=('Helvetica',20)).place(relx=0,rely=0,relheight=1,relwidth=1)
                 #Configuration de la fonction du bouton 
-                b.configure(command = lambda a = a:self.meilleur_choix(a))
+                d = element[1]
+                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
 
-            elif element[0] == 'left' and element[1]!='messagerie01234':
+            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1]!=self.name :
                 supprimer = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
                 if  supprimer:
                     supprimer[2].configure(text=element[1] +' (Déconnecté)')
@@ -419,29 +435,28 @@ class app(ctk.CTk):
                     #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                     c = ctk.CTkLabel(a,text=element[1].capitalize()+'(Déconnecté)',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                     c.pack(fill = 'x')
-                    b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text=element[1].capitalize())
+                    b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
                     b.pack(fill='x')
                     #Ajout à la base de fenêtre 
                     self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
                     #Configuration de la fonction du bouton 
-                    b.configure(command = lambda a = a:self.meilleur_choix(a))
+                    d = element[1]
+                    b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
     
             elif element[1] not in self.verificateur :
                 a = fenetre(self,self.instance,element[1])
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
-                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text=element[1].capitalize())
+                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
                 b.pack(fill='x')
                 #Ajout à la base de fenêtre 
                 self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
                 #Configuration de la fonction du bouton 
-                b.configure(command = lambda a = a:self.meilleur_choix(a))   
+                
+                d = element[1]
+                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
 
-            
-                
-                
-        
         self.after(10,self.creation_fenetre_specifique)
             
     def attribution_des_messages(self):
@@ -455,11 +470,21 @@ class app(ctk.CTk):
                 self.base_de_fenetre[destinataire][1].pack(after=self.entete,fill='x')
                 la_fenetre.afficher_message_recu(self.instance.msg_decoder['message']) #Et ici, on envoie le message
                 self.instance.msg_decoder = None
+                #Ici, notre fonction spéciale 
+                self.coloration_message(destinataire) #Pour packer la fenêtre 
         except:
             pass
         finally:
             self.after(10,self.attribution_des_messages)
 
+    def coloration_message(self,nom):
+        """Cette fonction va me permettre de colorier le nom du bouton au cas où un message viendrait  """
+        fen = self.base_de_fenetre.get(nom)[0]
+        if self.fenetre_actuelle == nom:
+           fen.compteur = 0  #Ici, on remet le compteur à zéro 
+        else:     
+            self.base_de_fenetre.get(nom)[1].configure(text=f'{self.obtenir_nom(nom )} (+{fen.compteur})',text_color = 'red')
+            
     def monter_en_haut(self):
         """Cette fonction va nous permettre de faire monter le bouton en haut au cas où on envoie un message"""
         liste = list(self.base_de_fenetre.values()) # Ici, on parcoure la liste des frames pour voir ce qui est prêt à venir en haut 
@@ -471,6 +496,19 @@ class app(ctk.CTk):
             else:
                 pass 
         self.after(500,self.monter_en_haut)
+
+    def fonction_bouton(self,actuelle,b:ctk.CTkButton ):
+        """Cette fonction va nous permettre de modifier la couleur du bouton de chaque chat si c'est la frame actuelle qui est mappé et surtout la fonction du bouton """
+        self.fenetre_actuelle = actuelle # C'est pour pouvoir savoir quelle fenêtre est packé 
+        liste_des_boutons = [j for i,j,k in list(self.base_de_fenetre.values()) if j!= b]
+        self.meilleur_choix(self.base_de_fenetre[actuelle][0])
+
+        b.configure(text_color = 'white',fg_color = 'blue',hover_color="#599FE9",text=self.obtenir_nom(actuelle) ) ; self.base_de_fenetre[actuelle][0].compteur = 0 
+
+        for i in liste_des_boutons:
+            i.configure(text_color = 'blue',fg_color = 'white',hover_color="#B5C4D4")
+        liste_des_boutons.clear()
+
+    
 #Ici, on a l'exécution de notre app
 app()
-
