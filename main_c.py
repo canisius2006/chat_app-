@@ -86,12 +86,9 @@ class accueil(ctk.CTkFrame):
         else:
             pass
     
-    
-
-
 
 #On va calibrer le module loggin rapidement 
-#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"D:/Phoenix/projet/messagerie/client/info_{nom}.log")
+#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"info_{nom}.log")
 #Ici, on fait la classe de l'accueil  et d'entrée des données utilisateur
 class reception:
     """Cette classe va nous permettre de gérer la connexion avec le serveur"""
@@ -283,7 +280,7 @@ class fenetre(ctk.CTkFrame):
         
         
 
-photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
+photo = ressource.chemin_fichier('image.png')
 
 
 #Ici, on définit la créaction de notre app
@@ -512,3 +509,4 @@ class app(ctk.CTk):
     
 #Ici, on a l'exécution de notre app
 app()
+
