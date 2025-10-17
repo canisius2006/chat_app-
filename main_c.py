@@ -35,7 +35,7 @@ class accueil(ctk.CTkFrame):
         self.label_2 = ctk.CTkLabel(self.frame_1,corner_radius=10,text="NCZ Messagerie",text_color='blue',font=('Helvetica',20,'bold'))
         self.entree_1 = ctk.CTkEntry(self.frame_1,placeholder_text='Entrer votre nom ',corner_radius=10,font=('Helvetica',20,'italic'),placeholder_text_color='black')
         
-        self.entree_2 = ctk.CTkComboBox(self.frame_1,values=['localhost'],corner_radius=10,font=('Helvetica',20,'italic'))
+        self.entree_2 = ctk.CTkComboBox(self.frame_1,values=['localhost'],corner_radius=10,font=('Helvetica',20,'italic'),dropdown_font=('Helvetica',20,'italic'),dropdown_fg_color='white',dropdown_text_color='blue',)
         self.entree_2.set("Entrer l'adresse")
         
         self.bouton_1 = ctk.CTkButton(self.frame_1,text='Confirmer',corner_radius=10,font = ('Helvetica',20))
@@ -86,9 +86,12 @@ class accueil(ctk.CTkFrame):
         else:
             pass
     
+    
+
+
 
 #On va calibrer le module loggin rapidement 
-#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"info_{nom}.log")
+#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"D:/Phoenix/projet/messagerie/client/info_{nom}.log")
 #Ici, on fait la classe de l'accueil  et d'entrée des données utilisateur
 class reception:
     """Cette classe va nous permettre de gérer la connexion avec le serveur"""
@@ -280,7 +283,7 @@ class fenetre(ctk.CTkFrame):
         
         
 
-photo = ressource.chemin_fichier('image.png')
+photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
 
 
 #Ici, on définit la créaction de notre app
@@ -376,7 +379,7 @@ class app(ctk.CTk):
         elif nouko == 'messagerie01234':
             return 'Messagerie NCZ '
         else:
-            return nouko 
+            return nouko.capitalize() 
         
     def creation_fenetre_specifique(self):
         """Cette fonction va nous permettre de créer une fenêtre pour chaque connexion"""
@@ -385,9 +388,12 @@ class app(ctk.CTk):
         for element in self.liste_amis:
             self.verificateur = list(self.base_de_fenetre.keys())
 
-            if element[1] in self.verificateur and element[0]=='actif' and element[1]!='messagerie01234' and element[1]!=self.name   : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
-                ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
-                ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
+            if element[1] in self.verificateur and element[0]=='actif' and element[1]!='messagerie01234' : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
+                if element[1] == self.name:
+                    pass
+                else:
+                    ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
+                    ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
                 
             
             elif element[1] == self.name and element[0]=='actif':
@@ -480,7 +486,7 @@ class app(ctk.CTk):
         if self.fenetre_actuelle == nom:
            fen.compteur = 0  #Ici, on remet le compteur à zéro 
         else:     
-            self.base_de_fenetre.get(nom)[1].configure(text=f'{self.obtenir_nom(nom )} (+{fen.compteur})',text_color = 'red')
+            self.base_de_fenetre.get(nom)[1].configure(text=f'{self.obtenir_nom(nom )} ({fen.compteur}+)',text_color = 'red')
             
     def monter_en_haut(self):
         """Cette fonction va nous permettre de faire monter le bouton en haut au cas où on envoie un message"""
@@ -509,4 +515,3 @@ class app(ctk.CTk):
     
 #Ici, on a l'exécution de notre app
 app()
-
