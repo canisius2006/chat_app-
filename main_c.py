@@ -286,6 +286,7 @@ class fenetre(ctk.CTkFrame):
 photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
 
 
+
 #Ici, on définit la créaction de notre app
 class app(ctk.CTk):
     """C'est la classe de notre application tkinter côté messagerie"""
@@ -298,6 +299,8 @@ class app(ctk.CTk):
         #Ici, on créer un dictionnaire pour chaque connexion pour pouvoir vite se réperer afin d'attribuer les messages aux bonnes personnes
         self.base_de_fenetre = {} 
         self.fenetre_actuelle = None 
+        self.liste_des_leurres = []
+        self.liste_brouillon_recherche = []  #En fait, c'est des variables qui peuvent me permettre d'aller loin dans ma fonction recherche 
         self.con = [] #C'est une liste qui va me permettre d'exécuter cette fonction conne des boutons
         self.inscription()
         #Ici, un thread pour pouvoir faire quelque chose 
@@ -317,6 +320,7 @@ class app(ctk.CTk):
         if self.begin.entree_1.get() and self.begin.entree_2.get():
             self.begin.place_forget()
             self.initialisation()
+
     def valider(self,event):
         """Cette fonction va nous permettre de valider les entree"""
         self.fonction_bouton_accueil()
@@ -343,7 +347,9 @@ class app(ctk.CTk):
         i = Thread(target = self.authentifiation)
         i.start()
         i.join()
-        
+        self.rechercher.bind('<Button-1>',self.recherche_entrer)
+        self.rechercher.bind('<Return>',self.recherche_entrer)
+        self.bouton_unpack.configure(command=self.recherche_sortir)
 
     def authentifiation(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
@@ -359,7 +365,7 @@ class app(ctk.CTk):
         #Self.boite 1 sera la boite qui prendra en compte la recherche de personne 
         self.boite_1 = ctk.CTkScrollableFrame(self,fg_color='white')
         self.boite_1.place(relx = 0,rely = 0.1,relheight = 1,relwidth = 0.5)
-        self.entete = ctk.CTkLabel(self.boite_1,text="Liste des contacts disponibles",wraplength=200,text_color='blue',font=('Helvetica',14),fg_color="#ABB2BF",corner_radius=10)
+        self.entete = ctk.CTkLabel(self.boite_1,text="Liste de vos conctacts ",wraplength=200,text_color='blue',font=('Helvetica',14),fg_color="#ABB2BF",corner_radius=10)
         self.entete.pack(fill='x')
         #Dans cet deuxième frame que je vais créer, ce sera possible d'afficher un message de bienvenue au client 
         self.boite_2 = ctk.CTkFrame(self,corner_radius=15,fg_color='white')
@@ -367,6 +373,15 @@ class app(ctk.CTk):
         self.opening = ctk.CTkLabel(self.boite_2,text="Bienvenue dans l'app de messagerie NCZ \n Commencez par discuter avec vos proches 😍😍",font=('Times',25,'bold'),text_color='blue',wraplength=250)
         self.opening.place(relx=0,rely = 0.2,relheight=0.5,relwidth = 1)
         
+        #Ici, les widgets pour la recherche 
+        self.frame_de_recherche = ctk.CTkScrollableFrame(self,corner_radius=20,fg_color='white',border_color='blue',border_width=2)
+        self.label_info = ctk.CTkLabel(self.frame_de_recherche,text='',corner_radius=10,fg_color='white',text_color='black',font=('Times',20,'bold'),wraplength=200)
+        self.label_contact = ctk.CTkLabel(self.frame_de_recherche,text='Liste des contacts disponibles',corner_radius=10,fg_color='blue',text_color='white',font=('Times',15,'bold'),wraplength=200)
+        self.bouton_unpack = ctk.CTkButton(self.frame_de_recherche,text='X',fg_color='blue',text_color='black',font=('Times',20,'bold'))
+        self.bouton_unpack.pack(fill='x',side=ctk.TOP)
+        self.label_info.pack(fill = 'x')
+
+
     def meilleur_choix(self,boite):
         """Cette fonction va nous permettre de faire le bon choix entre packer ou lifter"""
         boite.sur_ecran()
@@ -375,12 +390,14 @@ class app(ctk.CTk):
     def obtenir_nom(self,nouko:str):
         """C'est une fonction qui va nous permettre d'obtenir les noms d'utilisateurs adéquats dans certains cas de fonctions"""  
         if nouko == self.name:
-            return self.name + '(Vous)'
+            return self.name.capitalize() + '(Vous)'
         elif nouko == 'messagerie01234':
             return 'Messagerie NCZ '
         else:
             return nouko.capitalize() 
-        
+
+    #Le principe consiste à ne pas packer les boutons des frames de messagerie, mais à packet d'autre leurres à la place dans la frame de recherche pour la recherche
+
     def creation_fenetre_specifique(self):
         """Cette fonction va nous permettre de créer une fenêtre pour chaque connexion"""
         self.liste_amis = self.deuxieme_instance.liste_des_amis 
@@ -388,8 +405,8 @@ class app(ctk.CTk):
         for element in self.liste_amis:
             self.verificateur = list(self.base_de_fenetre.keys())
 
-            if element[1] in self.verificateur and element[0]=='actif' and element[1]!='messagerie01234' : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
-                if element[1] == self.name:
+            if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
+                if element[1] == self.name or element[1]=='messagerie01234':
                     pass
                 else:
                     ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
@@ -399,7 +416,9 @@ class app(ctk.CTk):
             elif element[1] == self.name and element[0]=='actif':
                 a = fenetre(self,self.instance,element[1])
                 b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
-                b.pack(fill='x')
+                b.pack(fill='x') 
+                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text='Vous ',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
@@ -409,6 +428,8 @@ class app(ctk.CTk):
                 #Configuration de la fonction du bouton 
                 d = element[1]
                 b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
                 
 
@@ -418,7 +439,9 @@ class app(ctk.CTk):
                 c = ctk.CTkLabel(a,text="Messagerie NCZ",font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
                 b =ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text="Messagerie NCZ") 
-                b.pack(fill='x')
+                # b.pack(fill='x') Il ne faut pas les packer tout de suite 
+                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                
                 #Ajout à la base de fenêtre 
                 self.base_de_fenetre[element[1]] = (a,b,c)#x parce que c'est une variable temporaire 
                 a.entree.place_forget()
@@ -427,6 +450,8 @@ class app(ctk.CTk):
                 #Configuration de la fonction du bouton 
                 d = element[1]
                 b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
 
             elif element[0] == 'left' and element[1]!='messagerie01234' and element[1]!=self.name :
@@ -439,12 +464,16 @@ class app(ctk.CTk):
                     c = ctk.CTkLabel(a,text=element[1].capitalize()+'(Déconnecté)',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                     c.pack(fill = 'x')
                     b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
-                    b.pack(fill='x')
+                    # b.pack(fill='x') Il ne faut pas les packer tout de suite 
+                    f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                    
                     #Ajout à la base de fenêtre 
                     self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
                     #Configuration de la fonction du bouton 
                     d = element[1]
                     b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                    self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                    f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
     
             elif element[1] not in self.verificateur :
                 a = fenetre(self,self.instance,element[1])
@@ -452,13 +481,17 @@ class app(ctk.CTk):
                 c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
                 b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
-                b.pack(fill='x')
+                # b.pack(fill='x') Il ne faut pas les packer tout de suite 
+                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                
                 #Ajout à la base de fenêtre 
                 self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
                 #Configuration de la fonction du bouton 
                 
                 d = element[1]
                 b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
 
         self.after(10,self.creation_fenetre_specifique)
             
@@ -486,7 +519,7 @@ class app(ctk.CTk):
         if self.fenetre_actuelle == nom:
            fen.compteur = 0  #Ici, on remet le compteur à zéro 
         else:     
-            self.base_de_fenetre.get(nom)[1].configure(text=f'{self.obtenir_nom(nom )} ({fen.compteur}+)',text_color = 'red')
+            self.base_de_fenetre.get(nom)[1].configure(text=f'{self.obtenir_nom(nom )} ({fen.compteur})',text_color = 'red')
             
     def monter_en_haut(self):
         """Cette fonction va nous permettre de faire monter le bouton en haut au cas où on envoie un message"""
@@ -512,6 +545,57 @@ class app(ctk.CTk):
             i.configure(text_color = 'blue',fg_color = 'white',hover_color="#B5C4D4")
         liste_des_boutons.clear()
 
+    def recherche_1(self):
+        """Cette fonction va nous permettre de rechercher une frame de discussion"""
+        self.frame_de_recherche.place(relx=0,rely=0.12,relheight = 0.8,relwidth = 0.48)
+        get = self.rechercher.get()
+
+        for i in self.liste_des_leurres:
+            
+            if get :
+                if get in i.cget('text').lower():
+                    self.liste_brouillon_recherche.append(i)
+                    self.label_info.configure(text='Résultat trouvé ')
+                    self.label_contact.pack_forget()
+                    i.pack(fill = 'x')
+                    
+
+                elif len(self.liste_brouillon_recherche) == 0:
+                    self.label_info.configure(text='Aucun résultat trouvé ')
+                    self.label_contact.pack_forget()
+                    try:
+                        i.pack_forget() # Donc ici on le supprime et on s'assure qu'il ne soit plus présent sur l'interface
+                        self.liste_brouillon_recherche.remove(i) 
+                    except:
+                        pass 
+                elif get not in i.cget('text').lower():
+                    self.label_contact.pack_forget()
+                    try:
+                        i.pack_forget() # Donc ici on le supprime et on s'assure qu'il ne soit plus présent sur l'interface 
+                        self.liste_brouillon_recherche.remove(i)
+                        
+                    except:
+                        pass 
+            else:
+                self.label_contact.pack(fill = 'x',after = self.label_info)
+                i.pack(fill='x')
+                self.label_info.configure(text='Aucun entrée détectée ')
+                
+        self.marqueur_0 = self.after(500,self.recherche_1)
     
+    def recherche_entrer(self,event):
+        """Cette fonction va nous permettre binder la fonction recherche le widget de recherche """
+        self.marqueur = self.after(500,self.recherche_1)
+
+    def recherche_sortir(self):
+        """Cette fonction va nous permettre de faire la sortie de la recherche """
+        self.frame_de_recherche.place_forget()
+        self.after_cancel(self.marqueur)
+        self.after_cancel(self.marqueur_0)
+        for i in self.liste_des_leurres:
+            i.pack_forget()
+
+        
+
 #Ici, on a l'exécution de notre app
 app()
