@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import socket
+import socket,time
 from threading import Thread
 import json, module_c#,logging 
 from PIL import Image 
@@ -11,54 +11,341 @@ class accueil(ctk.CTkFrame):
     """Cette classe va me permettre de faire l'accueil pour pouvoir récuperer les informations comme le nom et l'adresse"""
     def __init__(self,master,path):
         super().__init__(master)
+        
         self.path = path
         self.configure(fg_color = 'white')
         #Ici, on place la frame contenant l'accueil 
         self.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
         #Ici, on définit la photo qu'on veut packer sur le frame 
-        self.picture = ctk.CTkImage(Image.open(self.path),Image.open(self.path),size=(400,400))
+        self.picture = ctk.CTkImage(Image.open(self.path),Image.open(self.path),size=(500,400))
         self.ready = True #Une variable qui va nous permettre d'arrêter le thread au bon moment 
+        self.ready_2 = True 
         self.debut() #Ici, on fait commence notre animation du début 
         #Ici, on fait le thread pour pouvoir configurer le mode agrandissement 
         Thread(target = self.master.bind,args = ('<Configure>',self.resize),daemon = True ).start()
         self.master.bind('<Button-1>',self.rapide)
-        #Ca là va nous permettre de binder l'entree 1
-        self.entree_1.bind('<Return>',self.focus_2)
-        self.entree_2.bind('<Button-1>',self.clear_entree_2)
+        
+        self.demande()
+        self.sign_up_1()
+        self.sign_up_2() 
+        self.login()
+        #Ici, on défini le nom illusoire 
+        self.illusoire = ressource.mot_hasard() 
+        self.illusoire_1 = f"{self.illusoire}/././ok/././0"
+        #Ici, on doit commencer la connexion avec le second serveur pour les formalité d'inscription 
+
+    def demande(self):
+        """Cette fonction va nous permettre de faire l'ouverture, c'est à dire demander l'ip"""
+        self.frame_9 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
+        self.entree_8 = ctk.CTkEntry(self.frame_9,placeholder_text="Entrer l'adresse ip",font=('Times',20),width = 400)
+        self.bouton_13 = ctk.CTkButton(self.frame_9,text='Confirmer')
+        self.entree_8.pack()
+        self.bouton_13.pack()
+
+    def ouverture(self):
+        """Cette fonction va nous permettre de faire l'accueil pour  demander à la personne si il veut s'inscire ou se connecter """
+        
+        self.frame_2 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
+        self.frame_plus_1 = ctk.CTkFrame(self.frame_2,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
+        self.label_3 = ctk.CTkLabel(self.frame_2,fg_color='blue',text="Bienvenue sur l'application NCZ Messagerie",text_color='white',corner_radius=10,font=('Times',35))
+        self.bouton_2 = ctk.CTkButton(self.frame_plus_1,text="S'inscrire ",text_color='white',font=('Times',30,'underline'),corner_radius=10,fg_color='blue',width=150)
+        self.bouton_3 = ctk.CTkButton(self.frame_plus_1,text='Se connecter',fg_color='blue',font=('Times',30,'underline'),text_color='white',corner_radius=10,width = 150)
+        #Ici, on packe les widgets 
+        self.label_3.pack(side=ctk.TOP,anchor = 'center',fill = 'x')
+        self.frame_plus_1.pack(expand = 1,anchor = 'center',ipadx = 5)
+        self.bouton_2.pack(anchor = 'center')
+        self.bouton_3.pack(anchor = 'center',pady = 5)
+    
+    def sign_up_1(self):
+        """Cette fonction va nous permettre de faire l'inscription """
+        self.frame_3 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
+        self.frame_plus_2 = ctk.CTkFrame(self.frame_3,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
+        self.bouton_5 = ctk.CTkButton(self.frame_3, text='<-',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5)
+        self.label_4 = ctk.CTkLabel(self.frame_3,text='Inscription',text_color='white',fg_color = 'blue',corner_radius=10,font=('Times',40,'italic'))
+        self.entree_3 = ctk.CTkEntry(self.frame_plus_2,placeholder_text='Entrez votre pseudonyme ',corner_radius=15,font=('Times',20),text_color='black',width = 400)
+        self.label_5 = ctk.CTkLabel(self.frame_plus_2,text='',fg_color='white',text_color='blue',font=('Times',20))
+        self.bouton_4 = ctk.CTkButton(self.frame_plus_2,text='Confirmer',fg_color='blue',text_color='white',font=('Times',20,'underline'),corner_radius=10)
+        #Maintenant on les packe
+        self.bouton_5.pack(side = ctk.TOP,anchor = 'nw')
+        self.label_4.pack(anchor = 'center',fill = 'x') 
+        self.frame_plus_2.pack(expand = 1,anchor = 'center',ipadx = 5)
+        self.entree_3.pack(anchor = 'center')
+        self.label_5.pack(anchor = 'center')
+        self.bouton_4.pack(anchor = 'center')
+    
+    def verification_du_nom(self,nom)->bool:
+        """Cette fonction va nous permettre de vérifier si ce nom n'existe pas déjà dans la base de données, c'est-à-dire si quelqu'un n'a pas encore pris le nom"""
+        self.liste_disponible = self.instance.liste_des_amis 
+        liste = [] 
+        for i, j in self.liste_disponible:
+            if nom.lower().strip() == j.lower().strip():
+                liste.append(nom)
+            else:
+                pass
+        
+        return bool(liste)
+
+    def sign_up_2(self):
+        """Cette fonction va nous permettre de faire la fonction pour la phase 2 de l'inscription """
+        self.frame_4 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
+        self.frame_plus_3 = ctk.CTkFrame(self.frame_4,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
+        self.frame_5 = ctk.CTkFrame(self.frame_plus_3,fg_color='white',corner_radius=10)
+        self.bouton_6 = ctk.CTkButton(self.frame_4, text='<-',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5)
+        self.label_7 = ctk.CTkLabel(self.frame_4,text='Inscription',text_color='white',fg_color = 'blue',corner_radius=10,font=('Times',40,'italic'))
+        self.entree_5 = ctk.CTkEntry(self.frame_5,placeholder_text='Mot de passe ',corner_radius=15,font=('Times',20),text_color='black',show='*',width=400)
+        self.label_11 = ctk.CTkLabel(self.frame_plus_3,text='',corner_radius=10,fg_color='white',text_color='blue',font=('Times',20,'italic'))
+        self.frame_8 = ctk.CTkFrame(self.frame_plus_3,fg_color='white',corner_radius=10)
+        self.entree_7 = ctk.CTkEntry(self.frame_8,placeholder_text='Entrer le Mot de passe encore une fois ',corner_radius=15,font=('Times',20),text_color='black',show='*',width=400)
+        self.bouton_12 = ctk.CTkButton(self.frame_8, text='voir',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5,width = 25)
+        self.bouton_7 = ctk.CTkButton(self.frame_5, text='voir',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5,width = 25)
+        self.label_6 = ctk.CTkLabel(self.frame_plus_3,text='',corner_radius=10,fg_color='white',text_color='blue',font=('Times',20,'italic'))   
+        self.bouton_8 = ctk.CTkButton(self.frame_plus_3, text='Confirmer',fg_color='blue',text_color='white',font=('Times',20,'bold'),corner_radius=10)
+        #Ici, on packe les widgets 
+        self.bouton_6.pack(side=ctk.TOP,anchor = 'nw')
+        self.label_7.pack(anchor = 'center',fill='x')
+        self.frame_plus_3.pack(expand = 1,anchor = 'center',ipadx = 5)
+        self.frame_5.pack(anchor = 'center' )
+        self.frame_8.pack(anchor = 'center' )
+        self.entree_5.pack(side=ctk.LEFT)
+        self.bouton_7.pack(side= ctk.RIGHT)
+        self.label_11.pack(after=self.frame_5,anchor = 'center')
+        self.entree_7.pack(side=ctk.LEFT)
+        self.bouton_12.pack(side= ctk.RIGHT)
+        self.label_6.pack(after=self.frame_8,anchor = 'center')
+        self.bouton_8.pack(anchor = 'center')
+
+    def connexion_nouveau(self):
+        """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
+        #D'abord, on va simuler une déconnexion brutale 
+        self.instance.provoquer_rupture()
+        self.text_de_connexion = f"{self.entree_3.get()}/././{self.entree_7.get()}/././1"
+
+    def connexion_ancien(self):
+        """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
+        #Ici, on fournit juste le text de connexion 
+        self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
+    
+    def verification_mot_de_passe(self,password_1,password_2):
+        """Cette fonction va nous permettre de vérifier si les mots de passes sont correctes"""
+        if password_1 == password_2:
+            return True
+        else:
+            return False 
+
+    def login(self):
+        """Cette fonction va nous permettre de faire la partie login, c'est à dire la connexion proprement dite"""
+        self.frame_6 = ctk.CTkFrame(self,corner_radius=10,fg_color = 'white')
+        self.frame_plus_4 = ctk.CTkFrame(self.frame_6,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
+        self.bouton_9 = ctk.CTkButton(self.frame_6, text='<-',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5)
+        self.label_8 = ctk.CTkLabel(self.frame_6,text='Connexion',text_color='white',fg_color = 'blue',corner_radius=10,font=('Times',40,'italic'))
+        self.entree_6 = ctk.CTkEntry(self.frame_plus_4,placeholder_text='Entrez votre pseudonyme',font=('Times',20),corner_radius=10,width = 300)
+        self.label_9 = ctk.CTkLabel(self.frame_plus_4,text='',font=('Times',20,'italic'),fg_color='white',text_color='blue',corner_radius=10,height=2)
+        self.frame_7 = ctk.CTkFrame(self.frame_plus_4,corner_radius=10,fg_color='white')
+        self.entree_4 = ctk.CTkEntry(self.frame_7,placeholder_text='Entrez votre mot de passe',font=('Times',20),show = '*',corner_radius=10,width = 250)
+        
+        self.bouton_10 = ctk.CTkButton(self.frame_7, text='voir',fg_color='blue',text_color='black',font=('Times',20,'bold'),corner_radius=5,width = 25)
+        self.label_10 = ctk.CTkLabel(self.frame_plus_4,text='',corner_radius=10,fg_color='white',text_color='blue',font=('Times',20,'italic'),height=2)
+        self.bouton_11 = ctk.CTkButton(self.frame_plus_4, text='Confirmer',fg_color='blue',text_color='white',font=('Times',20,'bold'),corner_radius=10)
+        #Ici, on packe les widgets 
+        self.bouton_9.pack(side = ctk.TOP, anchor = 'nw')
+        self.label_8.pack(anchor = 'center',fill = 'x')
+        self.frame_plus_4.pack(expand = 1,anchor = 'center',ipadx = 5)
+        self.entree_6.pack(anchor = 'center')
+        self.label_9.pack(anchor = 'center')
+        self.frame_7.pack(anchor = 'center')
+        self.entree_4.pack(side = ctk.LEFT)
+        self.bouton_10.pack(side = ctk.RIGHT)
+        self.label_10.pack(anchor = 'center')
+        self.bouton_11.pack(anchor = 'center')
+
+    def verification_existence(self):
+        """Cette fonction va nous permettre de savoir si le nom existe et si la personne s'est déjà connecté """
+        self.liste_disponible = self.instance.liste_des_amis 
+        nom = self.entree_6.get()
+        liste = [] 
+        liste_1 = []
+        if nom:
+            self.label_9.configure(text="")
+            for i, j in self.liste_disponible:
+                if nom.lower().strip() == j.lower().strip():
+                    if i.lower().strip()=='actif':
+                        self.label_9.configure(text="Vous êtes déjà connecté ailleurs")
+                        liste_1.append(nom)
+                        
+                    elif i.lower().strip() == 'left':
+                        self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
+                        liste.append(nom)
+                    else:
+                        self.label_9.configure(text="C'est ici le problème")
+                    break    
+                elif len(liste_1):
+                    self.label_9.configure(text="Rien trouvé dans la base ") 
+
+                else:
+                    self.label_9.configure(text="Rien trouvé dans la base ")
+                
+        else:
+            self.label_9.configure(text="Aucun nom détecté")
+
+        return bool(liste)
+    
+    def verification_password(self):
+        """Cette fonction va nous permettre de vérifier si le mot de passe est correcte"""
+        password = self.entree_4.get()
+        temps = time.time()
+
+        if len(password) == 0:
+            self.label_10.configure(text='Aucun mot de passe détectée')  
+            return False
+         
+        elif len(password)<4:
+            self.label_10.configure(text='Caractères inférieurs à 5')  
+            return False 
+        
+        elif len(password)>4:
+            self.label_10.configure(text='')
+            self.instance.provoquer_rupture()
+            del self.instance 
+            self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././3"
+            self.instance = module_c.reception(self.entree_8.get(),self.text_de_connexion)
+            self.caught= True   
+
+            while self.caught:
+                try:
+                    if time.time() - temps >5:
+                        self.label_10.configure(text='Réessayer encore')
+                        break 
+                    if self.instance.liste_des_amis[0] == True:
+                        self.caught = False 
+                        return True
+                    
+                    if self.instance.liste_des_amis[0] == False:
+                        self.label_10.configure(text="Mot de passe erroné")
+                        self.caught = False
+                        return False 
+                    
+                    if self.instance.liste_des_amis[0] not in [True,False]:
+                        self.label_10.configure(text='...')
+
+                except:
+                    pass 
+        
+            
+        
+    
+    def fonction_bouton_4(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton 4 """
+        if self.entree_3.get():
+            if '012345' in self.entree_3.get():
+                self.label_5.configure(text="Pseudonyme invalide")
+            elif not self.verification_du_nom(self.entree_3.get()):
+                self.label_5.configure(text="")
+                self.frame_4.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+                self.frame_4.lift()
+            elif self.verification_du_nom(self.entree_3.get()):
+                self.label_5.configure(text='Ce nom a déjà été pris')
+        else:
+            self.label_5.configure(text='Aucun nom détecté')
+            
+
+    def fonction_bouton_7(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton voir et cacher"""
+        
+    def fonction_bouton_5(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton retour qu'est le bouton 5"""
+        
+        self.frame_2.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+        self.frame_2.lift()
+        
+    def fonction_bouton_2(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton 2"""
+        
+        self.frame_3.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+        self.frame_3.lift()
+
+    def fonction_bouton_3(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton3"""
+        
+        self.frame_6.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
+        self.frame_6.lift()
+
+    def fonction_bouton_6(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton 6"""
+        
+        self.frame_3.place(relx = 0,rely = 0,relheight = 1,relwidth =1 )
+        self.frame_3.lift()
+    
+    def fonction_password(self,bouton,entrer):
+        """Cette fonction va nous permettre la fonction mot de passe"""
+        if entrer.cget('show') == '*':
+            bouton.configure(text='Cacher')
+            entrer.configure(show = '')
+            
+        else:
+            bouton.configure(text='voir')
+            entrer.configure(show = '*')
+            
+
+    def fonction_bouton_9(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton 9"""  
+        self.frame_2.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+        self.frame_2.lift()
+    
+    def fonction_bouton_13(self):
+        """Cette fonction va nous permettre de faire la fonction du bouton13"""
+        if self.entree_8.get():
+            self.frame_2.place(relx = 0,rely=0,relheight = 1,relwidth = 1)
+            self.frame_2.lift()
+            #Ici, on va commencer notre connexion 
+            self.instance = module_c.reception(self.entree_8.get(),self.illusoire_1)
+            #-----------------------------------WARNING ----------------------------------
+        else:
+            pass 
+
+    def attribution_des_fonctions(self):
+        """Cette fonction va nous permettre d'attribuer les fonctions """
+        
+        self.bouton_2.configure(command = self.fonction_bouton_2)
+        self.bouton_4.configure(command = self.fonction_bouton_4)
+        self.bouton_3.configure(command = self.fonction_bouton_3)
+        self.bouton_5.configure(command = self.fonction_bouton_5)
+        self.bouton_6.configure(command = self.fonction_bouton_6)
+        self.bouton_7.configure(command = lambda:self.fonction_password(self.bouton_7,self.entree_5))
+        self.bouton_9.configure(command = self.fonction_bouton_9)
+        self.bouton_10.configure(command = lambda:self.fonction_password(self.bouton_10,self.entree_4))  
+        self.bouton_12.configure(command = lambda:self.fonction_password(self.bouton_12,self.entree_7))
+        self.bouton_13.configure(command = self.fonction_bouton_13)
+
     def debut(self):
         """Cette fonction va nous permettre de faire une frame qui va apparaitre au début pour présenter l'app"""
         self.frame_1 = ctk.CTkFrame(self,fg_color='white',corner_radius=20)
         self.frame_1.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
 
         self.label_1 = ctk.CTkLabel(self.frame_1,corner_radius=20,image=self.picture,text=None)
-        #Ici, on définit les widgets qui viendront pour empêcher certains erreurs de ne plus venir 
-        self.label_2 = ctk.CTkLabel(self.frame_1,corner_radius=10,text="NCZ Messagerie",text_color='blue',font=('Helvetica',20,'bold'))
-        self.entree_1 = ctk.CTkEntry(self.frame_1,placeholder_text='Entrer votre nom ',corner_radius=10,font=('Helvetica',20,'italic'),placeholder_text_color='black')
-        
-        self.entree_2 = ctk.CTkComboBox(self.frame_1,values=['localhost'],corner_radius=10,font=('Helvetica',20,'italic'),dropdown_font=('Helvetica',20,'italic'),dropdown_fg_color='white',dropdown_text_color='blue',)
-        self.entree_2.set("Entrer l'adresse")
-        
-        self.bouton_1 = ctk.CTkButton(self.frame_1,text='Confirmer',corner_radius=10,font = ('Helvetica',20))
+        #Ici, selfinfo parce qu'on a pas encore packer les widgets qui sont là
         self.label_1.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
         self.info = self.master.after(4000,self.fin)
 
-    def clear_entree_2(self,event):
-        """Cette fonction va nous permettre d'enlever le texte d'entrer de la combobox"""
-        if self.entree_2.get() == "Entrer l'adresse":
-            self.entree_2.set('')
-        else:
-            pass 
+   
     def rapide(self,event):
         """Cette fonction va nous permettre de vite accéder à l'espace login """  
-        self.master.after_cancel(self.info)
-        self.fin()
+        if self.ready_2:
+            self.master.after_cancel(self.info)
+            self.fin()
+            self.ready_2 = False 
+        else:
+            pass 
         
     def fin(self):
         """Cette fonction va nous permettre de mettre fin à la page d'accueil, la photo qui vient quoi"""
         self.ready = False 
         self.label_1.place_forget()
-        
-        self.widgets() #Et maintenant on packe les widgets pour la suite 
+
+        self.ouverture()
+        #self.widgets() #Et maintenant on packe les widgets pour la suite 
+        self.frame_9.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+        #Ici, on fait l'attribution des fonctions 
+        self.attribution_des_fonctions()
 
     def resize(self,event):
         """Cette fonction va nous permettre de redimensionner la photo du personne """
@@ -71,20 +358,7 @@ class accueil(ctk.CTkFrame):
         else:
             pass 
 
-    def widgets(self):
-        """L'ensemble des widgets qu'on va définir et packer""" 
-        self.label_2.place(relx=0.1,rely = 0.3,relheight = 0.15,relwidth = 0.8)
-        self.entree_1.place(relx = 0.2,rely = 0.5,relwidth = 0.6,relheight = 0.1)
-        self.entree_2.place(relx = 0.2,rely = 0.6,relwidth = 0.6,relheight = 0.1)
-        self.bouton_1.place(relx = 0.3,rely = 0.7,relwidth = 0.4,relheight = 0.1)
     
-    def focus_2(self,event):
-        """Cette fonction va nous permettre de mettre le focus sur l'entree 2"""
-        self.entree_2.focus()
-        if self.entree_2.get() == "Entrer l'adresse":
-            self.entree_2.set('')
-        else:
-            pass
     
     
 
@@ -292,7 +566,7 @@ class app(ctk.CTk):
     """C'est la classe de notre application tkinter côté messagerie"""
     def __init__(self):
         super().__init__()
-        self.geometry('400x400')
+        self.geometry('500x400')
         self.title('NCZ Mail Client ')
         ctk.set_appearance_mode('system')
         ctk.set_default_color_theme('blue')
@@ -301,6 +575,7 @@ class app(ctk.CTk):
         self.fenetre_actuelle = None 
         self.liste_des_leurres = []
         self.liste_brouillon_recherche = []  #En fait, c'est des variables qui peuvent me permettre d'aller loin dans ma fonction recherche 
+        self.me = None
         self.con = [] #C'est une liste qui va me permettre d'exécuter cette fonction conne des boutons
         self.inscription()
         #Ici, un thread pour pouvoir faire quelque chose 
@@ -312,27 +587,20 @@ class app(ctk.CTk):
     def inscription(self):
         """Cette fonction va nous permettre de faire l'inscription"""
         self.begin = accueil(self,photo) #Ici, on crée l'instance d'accueil 
-        self.begin.bouton_1.configure(command=lambda:Thread(target=self.fonction_bouton_accueil,daemon=True).start())
-        self.begin.entree_2.bind('<Return>',self.valider) #Ici on définit la fonction valider 
+        self.begin.bouton_8.configure(command=lambda:Thread(target=self.fonction_bouton_8,daemon=True).start())
+        self.begin.bouton_11.configure(command=lambda:Thread(target=self.fonction_du_bouton_11,daemon=True).start())
     
-    def fonction_bouton_accueil(self):
-        """Cette fonction va nous permettre de définir les fonctions du bouton accueil"""
-        if self.begin.entree_1.get() and self.begin.entree_2.get():
-            self.begin.place_forget()
-            self.initialisation()
-
-    def valider(self,event):
-        """Cette fonction va nous permettre de valider les entree"""
-        self.fonction_bouton_accueil()
-
+    
     def initialisation(self):
         """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions"""
-        self.name = self.begin.entree_1.get()
-        self.ip = self.begin.entree_2.get()
+        self.name_1 = self.begin.text_de_connexion
+        self.name = self.name_1.split('/././')[0]
+        self.ip = self.begin.entree_8.get()
+         
         #Première instance 
         self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
         #Deuxième instance 
-        self.deuxieme_instance = module_c.reception(self.ip,self.name)
+        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
         
         #Ici, on place les widgets sur l'écran d'accueil  
         self.widgets()
@@ -351,6 +619,30 @@ class app(ctk.CTk):
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
 
+    def initialisation_2(self):
+        """Cette fonction va nous permettre de faire l'initialisation pour le niveau connecté """
+        self.name_1 = self.begin.text_de_connexion
+        self.name = self.name_1.split('/././')[0]
+        self.ip = self.begin.entree_8.get()
+        #Première instance 
+        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
+        #Ici, on place les widgets sur l'écran d'accueil  
+        self.widgets()
+        #Ici, on initie la réception de message pour celui ci
+        Thread(target = self.instance.fonction,daemon = True).start()
+        #Ici, je créer un thread pour pouvoir créer les threads spécifiques
+        Thread(target=self.after,args=(10,self.creation_fenetre_specifique),daemon = True).start()
+        #Ici, je créer un thread pour attribution des messages 
+        Thread(target=self.after,args=(10,self.attribution_des_messages),daemon=True).start()
+        #Je créer un thread pour l'autentification qui est l'envoie de message 
+        i = Thread(target = self.authentifiation)
+        i.start()
+        i.join()
+        self.rechercher.bind('<Button-1>',self.recherche_entrer)
+        self.rechercher.bind('<Return>',self.recherche_entrer)
+        self.bouton_unpack.configure(command=self.recherche_sortir)
+        self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
+
     def authentifiation(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
         self.instance.envoyer_message(destinataire='ordinateur',message='connexion réussi')  #L'important, c'est qu'il envoie un message 
@@ -359,8 +651,10 @@ class app(ctk.CTk):
 
     def widgets(self):
         """"Ici, on a les widgets qu'on va placer sur la fenêtre principale """
-        self.rechercher = ctk.CTkEntry(self,placeholder_text='Recherche',corner_radius=10,font=('Helvetica',20))
-        self.rechercher.place(relx = 0,rely=0,relheight = 0.1,relwidth = 0.5) #Lui , c'est pour me permettre de rechercher les gens
+        self.frame_inutile = ctk.CTkFrame(self,corner_radius=15,fg_color='white')
+        self.rechercher = ctk.CTkEntry(self.frame_inutile,placeholder_text='Recherche',corner_radius=10,font=('Helvetica',20))
+        self.rechercher.pack(fill='x')
+        self.frame_inutile.place(relx = 0,rely=0,relheight = 0.1,relwidth = 0.5) #Lui , c'est pour me permettre de rechercher les gens
         
         #Self.boite 1 sera la boite qui prendra en compte la recherche de personne 
         self.boite_1 = ctk.CTkScrollableFrame(self,fg_color='white')
@@ -377,8 +671,8 @@ class app(ctk.CTk):
         self.frame_de_recherche = ctk.CTkScrollableFrame(self,corner_radius=20,fg_color='white',border_color='blue',border_width=2)
         self.label_info = ctk.CTkLabel(self.frame_de_recherche,text='',corner_radius=10,fg_color='white',text_color='black',font=('Times',20,'bold'),wraplength=200)
         self.label_contact = ctk.CTkLabel(self.frame_de_recherche,text='Liste des contacts disponibles',corner_radius=10,fg_color='blue',text_color='white',font=('Times',15,'bold'),wraplength=200)
-        self.bouton_unpack = ctk.CTkButton(self.frame_de_recherche,text='X',fg_color='blue',text_color='black',font=('Times',20,'bold'))
-        self.bouton_unpack.pack(fill='x',side=ctk.TOP)
+        self.bouton_unpack = ctk.CTkButton(self.frame_de_recherche,text='X',fg_color='blue',text_color='black',font=('Times',20,'bold'),width=2)
+        self.bouton_unpack.pack(side=ctk.TOP,anchor='ne')
         self.label_info.pack(fill = 'x')
 
 
@@ -395,18 +689,28 @@ class app(ctk.CTk):
             return 'Messagerie NCZ '
         else:
             return nouko.capitalize() 
+        
+    def vrai_liste_des_amis(self):
+        """Cette fonction va nous aider à choisir la vraie liste des amis à cause de connexion ancien """
+        if self.me == True :
+            return self.begin.instance.liste_des_amis
+        elif self.me == False:
+            return self.deuxieme_instance.liste_des_amis
+        else:
+            pass
 
     #Le principe consiste à ne pas packer les boutons des frames de messagerie, mais à packet d'autre leurres à la place dans la frame de recherche pour la recherche
 
     def creation_fenetre_specifique(self):
         """Cette fonction va nous permettre de créer une fenêtre pour chaque connexion"""
-        self.liste_amis = self.deuxieme_instance.liste_des_amis 
+        self.liste_amis = self.vrai_liste_des_amis()
+
         #logging.info(str(self.liste_amis)) 
         for element in self.liste_amis:
             self.verificateur = list(self.base_de_fenetre.keys())
 
             if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
-                if element[1] == self.name or element[1]=='messagerie01234':
+                if element[1] == self.name or element[1]=='messagerie01234' or '012345' in element[1]:
                     pass
                 else:
                     ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
@@ -454,7 +758,7 @@ class app(ctk.CTk):
                 f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
 
-            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1]!=self.name :
+            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1]!=self.name and '012345' not in element[1]:
                 supprimer = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
                 if  supprimer:
                     supprimer[2].configure(text=element[1] +' (Déconnecté)')
@@ -475,7 +779,7 @@ class app(ctk.CTk):
                     self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
                     f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
     
-            elif element[1] not in self.verificateur :
+            elif element[1] not in self.verificateur and '012345' not in element[1]:
                 a = fenetre(self,self.instance,element[1])
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
@@ -590,12 +894,58 @@ class app(ctk.CTk):
     def recherche_sortir(self):
         """Cette fonction va nous permettre de faire la sortie de la recherche """
         self.frame_de_recherche.place_forget()
+        self.rechercher.delete(0,ctk.END)
         self.after_cancel(self.marqueur)
         self.after_cancel(self.marqueur_0)
         for i in self.liste_des_leurres:
             i.pack_forget()
 
+    def fonction_bouton_8(self):
+        """Cette fonction nous permet de faire la fonction du bouton 8"""
+        if len(self.begin.entree_5.get()) ==0:
+            self.begin.label_11.configure(text="Aucune entrée détectée")
+
+        elif len(self.begin.entree_5.get())<4:
+            self.begin.label_11.configure(text="Caractère inférieurs à 5")
+
+        else :
+            self.begin.label_11.configure(text='')
+
+            if len(self.begin.entree_7.get()) == 0:
+                self.begin.label_6.configure("Aucune entrée détectée")
+
+            elif len(self.begin.entree_7.get())<4:
+                self.begin.label_6.configure(text="Caractère inférieurs à 5")
+
+            else :
+                self.begin.label_6.configure(text='')
+                if self.begin.verification_mot_de_passe(self.begin.entree_5.get(),self.begin.entree_7.get()):
+                    self.begin.label_11.configure(text='')
+                    self.begin.label_6.configure(text='')
+                    self.begin.connexion_nouveau()
+                    self.begin.place_forget()
+                    self.me = False
+                    self.initialisation()
+
+                else:
+                    self.begin.label_11.configure(text="")
+                    self.begin.label_6.configure(text="Mots de passe différents")
+
+
         
+
+    def fonction_du_bouton_11(self):
+        """Cette fonction va nous permettre de définir la fonction du bouton 11"""
+        if self.begin.verification_existence():
+            if self.begin.verification_password():
+                self.begin.connexion_ancien()
+                self.begin.place_forget()
+                self.me = True 
+                self.initialisation_2()
+            else:
+                pass
+        else:
+            pass 
 
 #Ici, on a l'exécution de notre app
 app()
