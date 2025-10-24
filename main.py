@@ -33,6 +33,8 @@ class special:
                 self.verification = False 
             except AttributeError:
                 pass
+            except ValueError:
+                pass 
     def arret(self):
         """Cette fonction va me permettre d'arrêter l'exécution l'envoie du message"""
         self.msg_decoder["news"] = 0
@@ -160,7 +162,7 @@ class cerveau:
                         if self.dictio_important.get(element).feu_vert == True :
                             pass 
                         else:
-                            print(0)
+                            # print(0)
                             #Ici, on le supprime de la base 
                             y = self.base.pop(self.dictio_important.get(element).moi)
                             self.instance_connexion.liste_des_ecoutes.remove(element)
@@ -210,6 +212,14 @@ while instance :
             print("Ici, c'est pour le module ",len(instance.instance_connexion_2.liste_connexion))
             print(f'\n {'-'*15} ')
             print(instance.instance_connexion_2.liste_connexion,'\n')
+        elif reponse =='5':
+            print("Ici, c'est pour le module ",len(instance.instance_connexion_2.base_de_mot_de_passe))
+            print(f'\n {'-'*15} ')
+            print(instance.instance_connexion_2.base_de_mot_de_passe,'\n')
+        elif reponse =='6':
+            print("Ici, c'est pour le module ",len(instance.instance_connexion_2.base_de_connexion))
+            print(f'\n {'-'*15} ')
+            print(instance.instance_connexion_2.base_de_connexion,'\n')
         else:
             print('choix inexistant')
             continue
