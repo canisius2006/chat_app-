@@ -47,7 +47,7 @@ class accueil(ctk.CTkFrame):
         
         self.frame_2 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
         self.frame_plus_1 = ctk.CTkFrame(self.frame_2,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
-        self.label_3 = ctk.CTkLabel(self.frame_2,fg_color='blue',text="Bienvenue sur l'application NCZ Messagerie",text_color='white',corner_radius=10,font=('Times',35))
+        self.label_3 = ctk.CTkLabel(self.frame_2,fg_color='blue',text="Bienvenue sur l'application NCZ Messagerie",text_color='white',corner_radius=10,font=('Times',30),wraplength=400)
         self.bouton_2 = ctk.CTkButton(self.frame_plus_1,text="S'inscrire ",text_color='white',font=('Times',30,'underline'),corner_radius=10,fg_color='blue',width=150)
         self.bouton_3 = ctk.CTkButton(self.frame_plus_1,text='Se connecter',fg_color='blue',font=('Times',30,'underline'),text_color='white',corner_radius=10,width = 150)
         #Ici, on packe les widgets 
@@ -198,7 +198,7 @@ class accueil(ctk.CTkFrame):
             self.label_10.configure(text='Aucun mot de passe détectée')  
             return False
          
-        elif len(password)<4:
+        elif 0<len(password)<4:
             self.label_10.configure(text='Caractères inférieurs à 5')  
             return False 
         
@@ -206,7 +206,7 @@ class accueil(ctk.CTkFrame):
             self.label_10.configure(text='')
             self.instance.provoquer_rupture()
             del self.instance 
-            self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././3"
+            self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
             self.instance = module_c.reception(self.entree_8.get(),self.text_de_connexion)
             self.caught= True   
 
@@ -905,19 +905,19 @@ class app(ctk.CTk):
         if len(self.begin.entree_5.get()) ==0:
             self.begin.label_11.configure(text="Aucune entrée détectée")
 
-        elif len(self.begin.entree_5.get())<4:
+        elif 0<len(self.begin.entree_5.get())<4:
             self.begin.label_11.configure(text="Caractère inférieurs à 5")
 
-        else :
+        elif len(self.begin.entree_5.get()) >4 :
             self.begin.label_11.configure(text='')
 
             if len(self.begin.entree_7.get()) == 0:
-                self.begin.label_6.configure("Aucune entrée détectée")
+                self.begin.label_6.configure(text="Aucune entrée détectée")
 
-            elif len(self.begin.entree_7.get())<4:
+            elif 0<len(self.begin.entree_7.get())<4:
                 self.begin.label_6.configure(text="Caractère inférieurs à 5")
 
-            else :
+            elif len(self.begin.entree_7.get()) >4 :
                 self.begin.label_6.configure(text='')
                 if self.begin.verification_mot_de_passe(self.begin.entree_5.get(),self.begin.entree_7.get()):
                     self.begin.label_11.configure(text='')
