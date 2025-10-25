@@ -27,6 +27,7 @@ class connexion:
         self.momentanement = True 
         #Une autre base de connexion pour les nouvelles connexions
         self.base_de_connexion = {}
+        self.liste_2 = []
         self.agree = None #Pour dire d'accord
         self.prealable()
         Thread(target=self.connexion_serveur,daemon=True).start() #Ici, nous avons le thread qui s'occupe de la connexion 
@@ -47,12 +48,14 @@ class connexion:
                 self.connexion,self.info = connect.accept()
         
                 self.recevoir_message(self.connexion)
+                self.connard = [i for i,j in self.liste_connexion] #Connard parce que j'avais oublié de faire une vérification importante avant 
                 #Avant de continuer ici, je vais d'abord checker un truc, je vais voir si l'instance existe d'abord avant de l'accepter
-                if self.connexion in self.liste_connexion :  #En fait, c'est ligne est possible parce que je l'ai déjà définit auparavant avec l'opérateur egalité de la classe
-                    del self.connexion
+
+                if self.connexion in self.connard :  #En fait, c'est ligne est possible parce que je l'ai déjà définit auparavant avec l'opérateur egalité de la classe
+                    pass 
                 else: #Ici, ça veut dire que c'est pas dedans
                     self.liste_connexion.append((self.connexion,self.information)) #C'est lui qui va nous permettre de vérifier la présence de la connexion
-                   
+                    
                    # print(len(self.liste_connexion)) #En phase d'observation 
 
                     #Ici, on va faire quelque chose pour pouvoir voir ce qui ce sont connectés
@@ -70,22 +73,20 @@ class connexion:
                     self.base_de_connexion[self.recu_1[0]] = connexionner
                     if self.recu_1[2].strip() == '0': #Connexion pour analyser le terrain d'abord 
                         self.information = self.recu_1[0] #L'option 1 contient le nom de la personne 
+                        self.liste_2.append(['actif',self.information])
                         #print('cool')
                     elif self.recu_1[2].strip() == '1': #L'option 1 correspond a signin , c'est à dire qu'on essaie de s'inscrire :
                         
                         self.information = self.recu_1[0]
                         self.base_de_mot_de_passe[self.information] = self.recu_1[1]
+                        self.liste_2.append(['actif',self.information])
                        # print('done')
 
                     elif self.recu_1[2].strip() == '2': #Ici, c'est en cas de connexion 
                         self.information == self.recu_1[0] 
-                         
-                    
-                    elif self.recu_1[2].strip() == '3': #Ici, c'est en cas de text de connexion 
-                         #On veut vérifier si le mot de passe est correct
-                       # print('reçu') 
                         self.check(self.recu_1[0],self.recu_1[1])
-                        #Comme vous l'aurez constaté, il n'y a pas selfinformation ici juste parce qu'on veut vérifier si le mot de passe est correct
+                        
+                    
                     break
                     # pour la vérification , on fait ça print(self.message) 
             except:
@@ -118,34 +119,35 @@ class connexion:
        # print("commencé")
         if self.base_de_mot_de_passe.get(nom) == password:
             self.agree = True #Cette variable va nous permettre d'envoyer le message
+            
         else:
             self.agree = False 
         
 
-    def en_ligne(self,liste1,liste2):
-        """Cette fonction va nous permettre de modifier le statut de quelqu'un s'il est en ligne ou pas"""
-        for j in liste1[:]:
-            for i in liste2:
-                if i[1] == j[1]:
-                    i[0] = 'actif'
-                    i[1] = j[1]
-                    #Ici, on supprime l'élémement correspondant à J
-                    liste1.remove(j)
-                else:
-                    pass 
-        return liste1,liste2 
+    # def en_ligne(self,liste1,liste2):
+    #     """Cette fonction va nous permettre de modifier le statut de quelqu'un s'il est en ligne ou pas"""
+    #     for j in liste1[:]:
+    #         for i in liste2:
+    #             if i[1] == j[1]:
+    #                 i[0] = 'actif'
+                    
+    #                 #Ici, on supprime l'élémement correspondant à J
+    #                 liste1.remove(j)
+    #             else:
+    #                 pass 
+    #     return liste1,liste2 
     
 
 
     def envoyer_liste(self):
         """Cette fonction va nous permettre d'envoyer la liste de ceux qui sont disponibles sur le réseau"""
         while self.momentanement:
-            self.liste_2 = [['actif',j] for i,j in self.liste_connexion] #C'est la liste qu'on voudrait envoyer à travers le message 
-            self.encodement,self.liste_2 = self.en_ligne(self.encodement,self.liste_2)
+            # self.liste_2 = [['actif',j] for i,j in self.liste_connexion] #C'est la liste qu'on voudrait envoyer à travers le message 
+            #self.encodement,self.liste_2 = self.en_ligne(self.encodement,self.liste_2)
             #logging.info(str(self.encodement + self.liste_2))
             try:  
                 if self.agree == None:
-                    self.message = str(list(self.encodement+self.liste_2)).encode() #Donc on envoie que la liste des noms avec actif devant chaque nom
+                    self.message = str(list(self.liste_2)).encode() #Donc on envoie que la liste des noms avec actif devant chaque nom
                     #liste de set au cas où la personne se reconnecte après être déconnecté 
                     self.taille = len(self.message)
 
@@ -157,8 +159,10 @@ class connexion:
                 if self.agree == True:
                     for i in range(5):
                         self.confirmer()
-                        self.agree = None
-                        # print("Je t'asssure ")
+                    self.liste_2.remove(['left',self.sedo])
+                    self.liste_2.append(['actif',self.sedo])
+                    self.agree = None
+                    #print("Je t'asssure ")
 
                 if self.agree == False:
                     for i in range(5):
@@ -167,10 +171,14 @@ class connexion:
 
                 
             except ConnectionResetError or BrokenPipeError:
-                
+     
                 self.liste_connexion.remove((element,identifiant))
-                self.encodement.append(['left',identifiant]) #Donc on ajoute le statut de la personne là
-                
+                try:
+                    self.liste_2.remove(['actif',identifiant])
+                except:
+                    pass
+                finally:
+                    self.liste_2.append(['left',identifiant])
                 
             except IndexError:
                 pass #Cet erreur au cas la méthode pop ne marche pas 

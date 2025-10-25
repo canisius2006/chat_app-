@@ -220,6 +220,10 @@ while instance :
             print("Ici, c'est pour le module ",len(instance.instance_connexion_2.base_de_connexion))
             print(f'\n {'-'*15} ')
             print(instance.instance_connexion_2.base_de_connexion,'\n')
+        elif reponse =='7':
+            print("Ici, c'est pour le module ",len(instance.instance_connexion_2.liste_2))
+            print(f'\n {'-'*15} ')
+            print(instance.instance_connexion_2.message,'\n')
         else:
             print('choix inexistant')
             continue
