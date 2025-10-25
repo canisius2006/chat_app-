@@ -118,12 +118,12 @@ class accueil(ctk.CTkFrame):
         """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
         #D'abord, on va simuler une déconnexion brutale 
         self.instance.provoquer_rupture()
-        self.text_de_connexion = f"{self.entree_3.get()}/././{self.entree_7.get()}/././1"
+        self.text_de_connexion = f"{self.entree_3.get().strip()}/././{self.entree_7.get().strip()}/././1"
 
     def connexion_ancien(self):
         """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
         #Ici, on fournit juste le text de connexion 
-        self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
+        self.text_de_connexion = f"{self.entree_6.get().strip()}/././{self.entree_4.get().strip()}/././2"
     
     def verification_mot_de_passe(self,password_1,password_2):
         """Cette fonction va nous permettre de vérifier si les mots de passes sont correctes"""
@@ -165,27 +165,31 @@ class accueil(ctk.CTkFrame):
         liste = [] 
         liste_1 = []
         if nom:
-            self.label_9.configure(text="")
-            for i, j in self.liste_disponible:
-                if nom.lower().strip() == j.lower().strip():
-                    if i.lower().strip()=='actif':
-                        self.label_9.configure(text="Vous êtes déjà connecté ailleurs")
-                        liste_1.append(nom)
+            if self.liste_disponible:
+                self.label_9.configure(text="")
+                for i, j in self.liste_disponible:
+                    if nom.lower().strip() == j.lower().strip():
+                        if i.lower().strip()=='actif':
+                            self.label_9.configure(text="Vous êtes déjà connecté ailleurs")
+                            liste_1.append(nom)
+                            
+                        elif i.lower().strip() == 'left':
+                            self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
+                            liste.append(nom)
+                        else:
+                            self.label_9.configure(text="C'est ici le problème")
+                        break   
                         
-                    elif i.lower().strip() == 'left':
-                        self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
-                        liste.append(nom)
-                    else:
-                        self.label_9.configure(text="C'est ici le problème")
-                    break    
-                elif len(liste_1):
-                    self.label_9.configure(text="Rien trouvé dans la base ") 
+                    elif len(liste_1):
+                        self.label_9.configure(text="Rien trouvé dans la base ") 
 
-                else:
-                    self.label_9.configure(text="Rien trouvé dans la base ")
-                
+                    else:
+                        self.label_9.configure(text="Rien trouvé dans la base ")
+            else:
+                self.label_9.configure(text="Rien trouvé dans la base ")        
         else:
             self.label_9.configure(text="Aucun nom détecté")
+        
 
         return bool(liste)
     
@@ -595,7 +599,7 @@ class app(ctk.CTk):
         """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions"""
         self.name_1 = self.begin.text_de_connexion
         self.name = self.name_1.split('/././')[0]
-        self.ip = self.begin.entree_8.get()
+        self.ip = self.begin.entree_8.get().strip()
          
         #Première instance 
         self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
@@ -683,7 +687,7 @@ class app(ctk.CTk):
    
     def obtenir_nom(self,nouko:str):
         """C'est une fonction qui va nous permettre d'obtenir les noms d'utilisateurs adéquats dans certains cas de fonctions"""  
-        if nouko == self.name:
+        if nouko.lower() == self.name.lower():
             return self.name.capitalize() + '(Vous)'
         elif nouko == 'messagerie01234':
             return 'Messagerie NCZ '
@@ -710,14 +714,14 @@ class app(ctk.CTk):
             self.verificateur = list(self.base_de_fenetre.keys())
 
             if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
-                if element[1] == self.name or element[1]=='messagerie01234' or '012345' in element[1]:
+                if element[1].lower() == self.name.lower() or element[1]=='messagerie01234' :
                     pass
                 else:
                     ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
                     ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
                 
             
-            elif element[1] == self.name and element[0]=='actif':
+            elif element[1].lower() == self.name.lower() and element[0]=='actif':
                 a = fenetre(self,self.instance,element[1])
                 b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
                 b.pack(fill='x') 
