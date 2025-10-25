@@ -73,13 +73,13 @@ class connexion:
                     self.base_de_connexion[self.recu_1[0]] = connexionner
                     if self.recu_1[2].strip() == '0': #Connexion pour analyser le terrain d'abord 
                         self.information = self.recu_1[0] #L'option 1 contient le nom de la personne 
-                        self.liste_2.append(['actif',self.information])
+                        
                         #print('cool')
                     elif self.recu_1[2].strip() == '1': #L'option 1 correspond a signin , c'est à dire qu'on essaie de s'inscrire :
                         
                         self.information = self.recu_1[0]
                         self.base_de_mot_de_passe[self.information] = self.recu_1[1]
-                        self.liste_2.append(['actif',self.information])
+                        
                        # print('done')
 
                     elif self.recu_1[2].strip() == '2': #Ici, c'est en cas de connexion 
@@ -122,29 +122,12 @@ class connexion:
             
         else:
             self.agree = False 
-        
-
-    # def en_ligne(self,liste1,liste2):
-    #     """Cette fonction va nous permettre de modifier le statut de quelqu'un s'il est en ligne ou pas"""
-    #     for j in liste1[:]:
-    #         for i in liste2:
-    #             if i[1] == j[1]:
-    #                 i[0] = 'actif'
-                    
-    #                 #Ici, on supprime l'élémement correspondant à J
-    #                 liste1.remove(j)
-    #             else:
-    #                 pass 
-    #     return liste1,liste2 
-    
 
 
     def envoyer_liste(self):
         """Cette fonction va nous permettre d'envoyer la liste de ceux qui sont disponibles sur le réseau"""
         while self.momentanement:
-            # self.liste_2 = [['actif',j] for i,j in self.liste_connexion] #C'est la liste qu'on voudrait envoyer à travers le message 
-            #self.encodement,self.liste_2 = self.en_ligne(self.encodement,self.liste_2)
-            #logging.info(str(self.encodement + self.liste_2))
+           
             try:  
                 if self.agree == None:
                     self.message = str(list(self.liste_2)).encode() #Donc on envoie que la liste des noms avec actif devant chaque nom
@@ -159,8 +142,7 @@ class connexion:
                 if self.agree == True:
                     for i in range(5):
                         self.confirmer()
-                    self.liste_2.remove(['left',self.sedo])
-                    self.liste_2.append(['actif',self.sedo])
+                    
                     self.agree = None
                     #print("Je t'asssure ")
 
@@ -173,12 +155,7 @@ class connexion:
             except ConnectionResetError or BrokenPipeError:
      
                 self.liste_connexion.remove((element,identifiant))
-                try:
-                    self.liste_2.remove(['actif',identifiant])
-                except:
-                    pass
-                finally:
-                    self.liste_2.append(['left',identifiant])
+                
                 
             except IndexError:
                 pass #Cet erreur au cas la méthode pop ne marche pas 

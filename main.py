@@ -113,7 +113,7 @@ class chacun:
                     if self.message_recu['destinataire'] == 'ordinateur':
                         self.base_de_equivalence[self.message_recu['encodeur']]=self.mon_client[1] 
                         self.moi = self.message_recu['encodeur']
-
+                        
                     else: #Autrement, on l'envoie à la bonne personne
                         self.envoyer_message(self.base_de_equivalence.get(self.message_recu['destinataire']),self.message_recu)#Et ici, le travail est fait
                         self.mon_client[0].arret()  
@@ -123,7 +123,22 @@ class chacun:
 
             except AttributeError: #Ici, passe si self.message_recu a un problème 
                 pass 
-            
+    def ajouter_a_la_liste(self,liste,nom):
+        """C'est une fonction qui va nous permettre d'ajouter une nouvelle connexion à liste du module"""
+        liste.append(['actif',nom])
+        if ['left',nom] in liste:
+            liste.remove(['left',nom])
+        else:
+            pass 
+
+    def supprimer_de_la_liste(self,liste,nom):
+        """Cette fonction va me permettre de supprimer de la liste"""
+        if ['actif',nom] in liste:
+            liste.remove(['actif',nom])
+        else:
+            pass 
+        liste.append(['left',nom])
+
     def envoyer_message(self,destinataire, message):
         """Cette fonction va nous permettre d'envoyer un message """
         self.message = message
@@ -169,15 +184,18 @@ class cerveau:
                             self.instance_connexion._liste_secondaire.remove(element[0])
                             #Ici, on l'éfface de la rlist 
                             self.instance_connexion.rlist = list(set(self.instance_connexion.rlist) - set(self.instance_connexion.xlist))
-                            self.instance_connexion.xlist.clear()
+                            self.instance_connexion.xlist.clear()                            
                             x = self.dictio_important.pop(element)
+                            #interagire avec l'autre module 
+                            x.supprimer_de_la_liste(self.instance_connexion_2.liste_2,x.moi)
                             #Libération des ressources de la mémoire 
                             self.liste_des_chacuns.remove(element)
-                        
+                            
                             del element,x ,y  
                     
                     else :
                         classe = chacun(element,self.base)
+                        classe.ajouter_a_la_liste(self.instance_connexion_2.liste_2,classe.moi)
                         self.liste_des_chacuns.append(element)
                         self.dictio_important[element] = classe #J'ajoute dans le dictionnaire le truc 
                         
