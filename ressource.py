@@ -12,5 +12,5 @@ def chemin_fichier(path:str) -> str:
 def mot_hasard():
     """C'est une fonction qui va nous permettre de générer un nom au hasard """
     mot = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    x = ''.join(random.sample(list(mot),k = 8)) + '012345'
+    x = ''.join(random.sample(list(mot),k = 8))
     return x

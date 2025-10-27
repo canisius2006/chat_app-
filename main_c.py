@@ -24,7 +24,7 @@ class accueil(ctk.CTkFrame):
         #Ici, on fait le thread pour pouvoir configurer le mode agrandissement 
         Thread(target = self.master.bind,args = ('<Configure>',self.resize),daemon = True ).start()
         self.master.bind('<Button-1>',self.rapide)
-        
+        self.compteur = 0
         self.demande()
         self.sign_up_1()
         self.sign_up_2() 
@@ -32,7 +32,7 @@ class accueil(ctk.CTkFrame):
         #Ici, on défini le nom illusoire 
         self.illusoire = ressource.mot_hasard() 
         self.illusoire_1 = f"{self.illusoire}/././ok/././0"
-        #Ici, on doit commencer la connexion avec le second serveur pour les formalité d'inscription 
+        self.bienvenue()
 
     def demande(self):
         """Cette fonction va nous permettre de faire l'ouverture, c'est à dire demander l'ip"""
@@ -164,32 +164,29 @@ class accueil(ctk.CTkFrame):
         nom = self.entree_6.get()
         liste = [] 
         liste_1 = []
-        if nom:
-            if self.liste_disponible:
-                self.label_9.configure(text="")
-                for i, j in self.liste_disponible:
-                    if nom.lower().strip() == j.lower().strip():
-                        if i.lower().strip()=='actif':
-                            self.label_9.configure(text="Vous êtes déjà connecté ailleurs")
-                            liste_1.append(nom)
+        try:
+            if nom:
+                if self.liste_disponible:
+                    self.label_9.configure(text="")
+                    for i, j in self.liste_disponible:
+                        if nom.lower().strip() == j.lower().strip():
+                            if i.lower().strip()=='actif':
+                                self.label_9.configure(text="Vous êtes déjà connecté ailleurs")
+                                liste_1.append(nom)
+                                
+                            elif i.lower().strip() == 'left':
+                                self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
+                                liste.append(nom)
                             
-                        elif i.lower().strip() == 'left':
-                            self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
-                            liste.append(nom)
-                        else:
-                            self.label_9.configure(text="C'est ici le problème")
-                        break   
-                        
-                    elif len(liste_1):
-                        self.label_9.configure(text="Rien trouvé dans la base ") 
-
-                    else:
-                        self.label_9.configure(text="Rien trouvé dans la base ")
+                            
+                        elif len(liste_1):
+                            self.label_9.configure(text="Rien trouvé dans la base ") 
+                else:
+                    self.label_9.configure(text="Rien trouvé dans la base ")        
             else:
-                self.label_9.configure(text="Rien trouvé dans la base ")        
-        else:
-            self.label_9.configure(text="Aucun nom détecté")
-        
+                self.label_9.configure(text="Aucun nom détecté")
+        except TypeError:
+            pass 
 
         return bool(liste)
     
@@ -207,33 +204,36 @@ class accueil(ctk.CTkFrame):
             return False 
         
         elif len(password)>4:
-            self.label_10.configure(text='')
-            self.instance.provoquer_rupture()
-            del self.instance 
-            self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
-            self.instance = module_c.reception(self.entree_8.get(),self.text_de_connexion)
-            self.caught= True   
+            try:
+                self.label_10.configure(text='')
+                self.instance.provoquer_rupture()
+                del self.instance 
+                self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
+                self.instance = module_c.reception(self.entree_8.get(),self.text_de_connexion)
+                self.caught= True   
+             
+                while self.caught:
+                    try:
+                        if time.time() - temps >5:
+                            self.label_10.configure(text='Réessayer encore')
+                            break 
+                        if self.instance.liste_des_amis[0] == True:
+                            self.caught = False 
+                            return True
+                        
+                        if self.instance.liste_des_amis[0] == False:
+                            self.label_10.configure(text="Mot de passe erroné")
+                            self.caught = False
+                            return False 
+                        
+                        if self.instance.liste_des_amis[0] not in [True,False]:
+                            self.label_10.configure(text='...')
 
-            while self.caught:
-                try:
-                    if time.time() - temps >5:
-                        self.label_10.configure(text='Réessayer encore')
-                        break 
-                    if self.instance.liste_des_amis[0] == True:
-                        self.caught = False 
-                        return True
-                    
-                    if self.instance.liste_des_amis[0] == False:
-                        self.label_10.configure(text="Mot de passe erroné")
-                        self.caught = False
-                        return False 
-                    
-                    if self.instance.liste_des_amis[0] not in [True,False]:
-                        self.label_10.configure(text='...')
-
-                except:
-                    pass 
-        
+                    except:
+                        pass 
+            except:
+                pass
+                
             
         
     
@@ -362,8 +362,21 @@ class accueil(ctk.CTkFrame):
         else:
             pass 
 
+    def bienvenue(self):
+        """Cette fonction va nous permettre d'afficher quelque chose à l'écran le temps que tout se charge normalement """
+        
+        self.cadre = ctk.CTkFrame(self.master,fg_color='white',corner_radius=10)
+        self.label = ctk.CTkLabel(self.cadre,corner_radius=10,fg_color='white',text_color='purple',font=('Times',40))
+        self.label.pack(expand = 1,anchor = 'center')
+        Thread(target=self.after,args=(1000,self.animation),daemon = 1).start()
     
-    
+    def animation(self):
+        """C'est la fonction pour l'animation qu'on va faire"""
+        liste = ['|','\\','-','/']
+        self.label.configure(text=liste[self.compteur%4]+"\n Un instant...")
+        self.compteur +=1
+        self.after(1000,self.animation)
+
     
 
 
@@ -559,7 +572,8 @@ class fenetre(ctk.CTkFrame):
         else:
             pass 
         
-        
+
+
 
 photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
 
@@ -655,24 +669,26 @@ class app(ctk.CTk):
 
     def widgets(self):
         """"Ici, on a les widgets qu'on va placer sur la fenêtre principale """
-        self.frame_inutile = ctk.CTkFrame(self,corner_radius=15,fg_color='white')
+        self.frame_all = ctk.CTkFrame(self,fg_color='white')
+        #self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
+        self.frame_inutile = ctk.CTkFrame(self.frame_all,corner_radius=15,fg_color='white')
         self.rechercher = ctk.CTkEntry(self.frame_inutile,placeholder_text='Recherche',corner_radius=10,font=('Helvetica',20))
         self.rechercher.pack(fill='x')
         self.frame_inutile.place(relx = 0,rely=0,relheight = 0.1,relwidth = 0.5) #Lui , c'est pour me permettre de rechercher les gens
         
         #Self.boite 1 sera la boite qui prendra en compte la recherche de personne 
-        self.boite_1 = ctk.CTkScrollableFrame(self,fg_color='white')
+        self.boite_1 = ctk.CTkScrollableFrame(self.frame_all,fg_color='white')
         self.boite_1.place(relx = 0,rely = 0.1,relheight = 1,relwidth = 0.5)
         self.entete = ctk.CTkLabel(self.boite_1,text="Liste de vos conctacts ",wraplength=200,text_color='blue',font=('Helvetica',14),fg_color="#ABB2BF",corner_radius=10)
         self.entete.pack(fill='x')
         #Dans cet deuxième frame que je vais créer, ce sera possible d'afficher un message de bienvenue au client 
-        self.boite_2 = ctk.CTkFrame(self,corner_radius=15,fg_color='white')
+        self.boite_2 = ctk.CTkFrame(self.frame_all,corner_radius=15,fg_color='white')
         self.boite_2.place(relx = 0.5,rely = 0,relheight = 1,relwidth = 0.5)
         self.opening = ctk.CTkLabel(self.boite_2,text="Bienvenue dans l'app de messagerie NCZ \n Commencez par discuter avec vos proches 😍😍",font=('Times',25,'bold'),text_color='blue',wraplength=250)
         self.opening.place(relx=0,rely = 0.2,relheight=0.5,relwidth = 1)
         
         #Ici, les widgets pour la recherche 
-        self.frame_de_recherche = ctk.CTkScrollableFrame(self,corner_radius=20,fg_color='white',border_color='blue',border_width=2)
+        self.frame_de_recherche = ctk.CTkScrollableFrame(self.frame_all,corner_radius=20,fg_color='white',border_color='blue',border_width=2)
         self.label_info = ctk.CTkLabel(self.frame_de_recherche,text='',corner_radius=10,fg_color='white',text_color='black',font=('Times',20,'bold'),wraplength=200)
         self.label_contact = ctk.CTkLabel(self.frame_de_recherche,text='Liste des contacts disponibles',corner_radius=10,fg_color='blue',text_color='white',font=('Times',15,'bold'),wraplength=200)
         self.bouton_unpack = ctk.CTkButton(self.frame_de_recherche,text='X',fg_color='blue',text_color='black',font=('Times',20,'bold'),width=2)
@@ -716,17 +732,17 @@ class app(ctk.CTk):
             if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
                 if element[1].lower() == self.name.lower() or element[1]=='messagerie01234' :
                     pass
-                else:
+                elif element[1].lower() != self.name.lower() or element[1]!='messagerie01234':
                     ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
                     ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
                 
             
             elif element[1].lower() == self.name.lower() and element[0]=='actif':
+                
                 a = fenetre(self,self.instance,element[1])
                 b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
                 b.pack(fill='x') 
                 f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
-                
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text='Vous ',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                 c.pack(fill = 'x')
@@ -739,7 +755,8 @@ class app(ctk.CTk):
                 self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
                 f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
-                
+                self.begin.cadre.place_forget()
+                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
 
             elif element[1] == 'messagerie01234' and element != self.name and element[0]=="actif":
                 a = fenetre(self,self.instance,element[1])
@@ -762,7 +779,7 @@ class app(ctk.CTk):
                 f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                 self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
 
-            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1]!=self.name and '012345' not in element[1]:
+            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1].lower()!=self.name.lower() :
                 supprimer = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
                 if  supprimer:
                     supprimer[2].configure(text=element[1] +' (Déconnecté)')
@@ -783,7 +800,7 @@ class app(ctk.CTk):
                     self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
                     f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
     
-            elif element[1] not in self.verificateur and '012345' not in element[1]:
+            elif element[1] not in self.verificateur and element[1].lower()!=self.name.lower():
                 a = fenetre(self,self.instance,element[1])
                 #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
                 c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
@@ -928,6 +945,8 @@ class app(ctk.CTk):
                     self.begin.label_6.configure(text='')
                     self.begin.connexion_nouveau()
                     self.begin.place_forget()
+                    self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                    
                     self.me = False
                     self.initialisation()
 
@@ -944,6 +963,8 @@ class app(ctk.CTk):
             if self.begin.verification_password():
                 self.begin.connexion_ancien()
                 self.begin.place_forget()
+                self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                
                 self.me = True 
                 self.initialisation_2()
             else:
