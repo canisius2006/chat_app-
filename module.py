@@ -155,7 +155,9 @@ class connexion:
             except ConnectionResetError or BrokenPipeError:
      
                 self.liste_connexion.remove((element,identifiant))
-                
+
+            except ValueError:
+                pass
                 
             except IndexError:
                 pass #Cet erreur au cas la méthode pop ne marche pas 
