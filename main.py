@@ -1,7 +1,7 @@
 #Ici, on importe les modules dont nous aurons besoin pour la suite
 import socket as st
 from threading import Thread
-import select,json,module,traceback
+import select,json,module#,traceback
 import logging 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"D:/Phoenix/projet/messagerie/client/info.log")
 #Ici, je veux construire la classe responsable de la créaction de la vérification de la reception de message 
@@ -123,13 +123,24 @@ class chacun:
 
             except AttributeError: #Ici, passe si self.message_recu a un problème 
                 pass 
-    def ajouter_a_la_liste(self,liste,nom):
+    def ajouter_a_la_liste(self,liste:list,classe):
         """C'est une fonction qui va nous permettre d'ajouter une nouvelle connexion à liste du module"""
-        liste.append(['actif',nom])
-        if ['left',nom] in liste:
-            liste.remove(['left',nom])
-        else:
-            pass 
+        while True:
+            try:
+                nom = classe.moi
+                if nom:
+                    if liste.count(['actif',nom]) == 0:
+                        liste.append(['actif',nom])
+                        if ['left',nom] in liste:
+                            liste.remove(['left',nom])
+                        else:
+                            pass 
+                        break
+                    else:
+                        break
+            except:
+                pass 
+            
 
     def supprimer_de_la_liste(self,liste,nom):
         """Cette fonction va me permettre de supprimer de la liste"""
@@ -167,6 +178,7 @@ class cerveau:
         # Ici, l'attribution des fonctions de notre base 
         Thread(target = self.attribution,daemon = True).start()
 
+
     def attribution(self):
         """Cette fonction va nous permettre d'attribuer à chaque connexion, une classe chacun"""
 
@@ -174,10 +186,11 @@ class cerveau:
             try:
                 for element in self.instance_connexion.liste_des_ecoutes[:]: 
                     if element in self.liste_des_chacuns[:]:
+                        
                         if self.dictio_important.get(element).feu_vert == True :
                             pass 
                         else:
-                            # print(0)
+                            
                             #Ici, on le supprime de la base 
                             y = self.base.pop(self.dictio_important.get(element).moi)
                             self.instance_connexion.liste_des_ecoutes.remove(element)
@@ -195,14 +208,12 @@ class cerveau:
                     
                     else :
                         classe = chacun(element,self.base)
-                        classe.ajouter_a_la_liste(self.instance_connexion_2.liste_2,classe.moi)
                         self.liste_des_chacuns.append(element)
                         self.dictio_important[element] = classe #J'ajoute dans le dictionnaire le truc 
+                        Thread(target = classe.ajouter_a_la_liste,args = (self.instance_connexion_2.liste_2,classe),daemon = True).start()
                         
             except AttributeError:
                 pass 
-                
-                
 
 #Créaction de l'instance du serveur 
 instance = cerveau()
