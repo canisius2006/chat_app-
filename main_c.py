@@ -39,8 +39,10 @@ class accueil(ctk.CTkFrame):
         self.frame_9 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
         self.entree_8 = ctk.CTkEntry(self.frame_9,placeholder_text="Entrer l'adresse ip",font=('Times',20),width = 400)
         self.bouton_13 = ctk.CTkButton(self.frame_9,text='Confirmer')
+        self.info_label = ctk.CTkLabel(self.frame_9,corner_radius=10,font=('Times',20),fg_color='white',text_color='blue',text='')
         self.entree_8.pack()
         self.bouton_13.pack()
+        self.info_label.pack()
 
     def ouverture(self):
         """Cette fonction va nous permettre de faire l'accueil pour  demander à la personne si il veut s'inscire ou se connecter """
@@ -75,13 +77,16 @@ class accueil(ctk.CTkFrame):
     
     def verification_du_nom(self,nom)->bool:
         """Cette fonction va nous permettre de vérifier si ce nom n'existe pas déjà dans la base de données, c'est-à-dire si quelqu'un n'a pas encore pris le nom"""
-        self.liste_disponible = self.instance.liste_des_amis 
-        liste = [] 
-        for i, j in self.liste_disponible:
-            if nom.lower().strip() == j.lower().strip():
-                liste.append(nom)
-            else:
-                pass
+        try:
+            self.liste_disponible = self.instance.liste_des_amis 
+            liste = [] 
+            for i, j in self.liste_disponible:
+                if nom.lower().strip() == j.lower().strip():
+                    liste.append(nom)
+                else:
+                    pass
+        except AttributeError:
+            self.fonction_bouton_13()
         
         return bool(liste)
 
@@ -118,12 +123,12 @@ class accueil(ctk.CTkFrame):
         """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
         #D'abord, on va simuler une déconnexion brutale 
         self.instance.provoquer_rupture()
-        self.text_de_connexion = f"{self.entree_3.get().strip()}/././{self.entree_7.get().strip()}/././1"
+        self.text_de_connexion = f"{self.entree_3.get().strip().lower()}/././{self.entree_7.get().strip()}/././1"
 
     def connexion_ancien(self):
         """Cette fonction va nous permettre de se connecter lorsqu'on est nouveau sur le site"""
         #Ici, on fournit juste le text de connexion 
-        self.text_de_connexion = f"{self.entree_6.get().strip()}/././{self.entree_4.get().strip()}/././2"
+        self.text_de_connexion = f"{self.entree_6.get().strip().lower()}/././{self.entree_4.get().strip()}/././2"
     
     def verification_mot_de_passe(self,password_1,password_2):
         """Cette fonction va nous permettre de vérifier si les mots de passes sont correctes"""
@@ -206,6 +211,7 @@ class accueil(ctk.CTkFrame):
         elif len(password)>4:
             try:
                 self.label_10.configure(text='')
+                self.label_5.configure(text='')
                 self.instance.provoquer_rupture()
                 del self.instance 
                 self.text_de_connexion = f"{self.entree_6.get()}/././{self.entree_4.get()}/././2"
@@ -231,9 +237,14 @@ class accueil(ctk.CTkFrame):
 
                     except:
                         pass 
-            except:
-                pass
-                
+            except ConnectionRefusedError:
+                self.label_10.configure(text='Vérifier votre connexion puis réessayer') 
+                self.label_5.configure(text='Vérifier votre connexion puis réessayer')
+                return False
+            except socket.gaierror:
+                self.label_10.configure(text='Vérifier votre connexion puis réessayer')
+                self.label_5.configure(text='Vérifier votre connexion puis réessayer')
+                return False 
             
         
     
@@ -297,14 +308,23 @@ class accueil(ctk.CTkFrame):
     
     def fonction_bouton_13(self):
         """Cette fonction va nous permettre de faire la fonction du bouton13"""
-        if self.entree_8.get():
-            self.frame_2.place(relx = 0,rely=0,relheight = 1,relwidth = 1)
-            self.frame_2.lift()
-            #Ici, on va commencer notre connexion 
-            self.instance = module_c.reception(self.entree_8.get(),self.illusoire_1)
-            #-----------------------------------WARNING ----------------------------------
-        else:
-            pass 
+        self.info_label.configure(text='') 
+        try:
+            if self.entree_8.get():
+                #Ici, on va commencer notre connexion 
+                self.instance = module_c.reception(self.entree_8.get(),self.illusoire_1)
+                #-----------------------------------WARNING ----------------------------------
+                self.frame_2.place(relx = 0,rely=0,relheight = 1,relwidth = 1)
+                self.frame_2.lift()
+            else:
+                self.info_label.configure(text='Aucune entrée détectée')  
+        except ConnectionRefusedError:
+            self.info_label.configure(text='Vérifier votre adresse puis réessayer') 
+
+        except socket.gaierror:
+            self.info_label.configure(text='Vérifier votre connexion puis réessayer')
+
+        
 
     def attribution_des_fonctions(self):
         """Cette fonction va nous permettre d'attribuer les fonctions """
@@ -326,6 +346,7 @@ class accueil(ctk.CTkFrame):
         self.frame_1.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
 
         self.label_1 = ctk.CTkLabel(self.frame_1,corner_radius=20,image=self.picture,text=None)
+        
         #Ici, selfinfo parce qu'on a pas encore packer les widgets qui sont là
         self.label_1.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
         self.info = self.master.after(4000,self.fin)
@@ -366,16 +387,18 @@ class accueil(ctk.CTkFrame):
         """Cette fonction va nous permettre d'afficher quelque chose à l'écran le temps que tout se charge normalement """
         
         self.cadre = ctk.CTkFrame(self.master,fg_color='white',corner_radius=10)
+        self.actualiser = ctk.CTkButton(self.cadre,text="Actualiser",corner_radius=10,font=('Times',40))
         self.label = ctk.CTkLabel(self.cadre,corner_radius=10,fg_color='white',text_color='purple',font=('Times',40))
         self.label.pack(expand = 1,anchor = 'center')
-        Thread(target=self.after,args=(1000,self.animation),daemon = 1).start()
+        self.new = ctk.CTkLabel(self.cadre,corner_radius=10,fg_color='white',text_color='purple',font=('Times',30),text="Une déconnexion a été enregistrée\n Vérifier votre réseau ")
+        self.animer = self.master.after(1000,self.animation)
     
     def animation(self):
         """C'est la fonction pour l'animation qu'on va faire"""
         liste = ['|','\\','-','/']
         self.label.configure(text=liste[self.compteur%4]+"\n Un instant...")
         self.compteur +=1
-        self.after(1000,self.animation)
+        self.master.after(1000,self.animation)
 
     
 
@@ -405,12 +428,16 @@ class reception:
 
     def envoyer_message(self,destinataire ='ordinateur', message =''):
         """Cette fonction va nous permettre d'envoyer un message """
-
-        self.donnee = {'encodeur':self.nom,'destinataire':destinataire,'message':message}
-        self.donnee_json = json.dumps(self.donnee,ensure_ascii=False).encode()
-        self.taille = len(self.donnee_json)
-        self.sock.sendall(f"{self.taille:08d}".encode())
-        self.sock.sendall(self.donnee_json)
+        try:
+            self.donnee = {'encodeur':self.nom,'destinataire':destinataire,'message':message.strip()}
+            self.donnee_json = json.dumps(self.donnee,ensure_ascii=False).encode()
+            self.taille = len(self.donnee_json)
+            self.sock.sendall(f"{self.taille:08d}".encode())
+            self.sock.sendall(self.donnee_json)
+            
+        except ConnectionResetError:
+            self.msg_decoder = False 
+           
         
 
     def recevoir_message(self):
@@ -426,8 +453,11 @@ class reception:
                 self.msg = self.sock.recv(self.taille)
                 self.msg_decoder = json.loads(self.msg.decode())
 
-            except:
-                pass
+            except ConnectionResetError:
+                self.msg_decoder = False
+            except OSError:
+                self.msg_decoder = False
+
     def fonction(self):  #En fait , je l'ai nommer comme ça parce que c'est plus facile à écrire
         """Cette fonction va nous permettre d'accorder un thread à chaque connexion"""
         Thread(target = self.recevoir_message,daemon = True).start()
@@ -607,7 +637,7 @@ class app(ctk.CTk):
         self.begin = accueil(self,photo) #Ici, on crée l'instance d'accueil 
         self.begin.bouton_8.configure(command=lambda:Thread(target=self.fonction_bouton_8,daemon=True).start())
         self.begin.bouton_11.configure(command=lambda:Thread(target=self.fonction_du_bouton_11,daemon=True).start())
-    
+        self.begin.actualiser.configure(command = lambda:Thread(target = self.fonction_bouton_actualiser,daemon = True).start())
     
     def initialisation(self):
         """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions"""
@@ -629,13 +659,30 @@ class app(ctk.CTk):
         #Ici, je créer un thread pour attribution des messages 
         Thread(target=self.after,args=(10,self.attribution_des_messages),daemon=True).start()
         #Je créer un thread pour l'autentification qui est l'envoie de message 
-
-        i = Thread(target = self.authentifiation)
+        self.me = False 
+        i = Thread(target = self.authentification)
         i.start()
         i.join()
         self.rechercher.bind('<Button-1>',self.recherche_entrer)
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
+
+    def initialisation_deconnexion(self):
+        """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions après la déconnexion""" 
+        #Première instance 
+        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
+        #Deuxième instance 
+        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
+    
+        #Ici, on initie la réception de message pour celui ci
+        Thread(target = self.instance.fonction,daemon = True).start()
+
+        #Je créer un thread pour l'autentification qui est l'envoie de message 
+        self.me = False 
+        i = Thread(target = self.authentification)
+        i.start()
+        i.join()
+        
 
     def initialisation_2(self):
         """Cette fonction va nous permettre de faire l'initialisation pour le niveau connecté """
@@ -653,15 +700,30 @@ class app(ctk.CTk):
         #Ici, je créer un thread pour attribution des messages 
         Thread(target=self.after,args=(10,self.attribution_des_messages),daemon=True).start()
         #Je créer un thread pour l'autentification qui est l'envoie de message 
-        i = Thread(target = self.authentifiation)
+        i = Thread(target = self.authentification)
         i.start()
         i.join()
         self.rechercher.bind('<Button-1>',self.recherche_entrer)
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
         self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
+    
+    def initialisation_2_deconnexion(self):
+        """Cette fonction fait la connexion en cas de déconnexion """ 
+        #Première instance 
+        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
+        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
+        #Ici, on initie la réception de message pour celui ci
+        Thread(target = self.instance.fonction,daemon = True).start() 
+        #Je créer un thread pour l'autentification qui est l'envoie de message 
+        i = Thread(target = self.authentification)
+        i.start()
+        i.join()
+        
+        self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
 
-    def authentifiation(self):
+
+    def authentification(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
         self.instance.envoyer_message(destinataire='ordinateur',message='connexion réussi')  #L'important, c'est qu'il envoie un message 
     
@@ -712,12 +774,14 @@ class app(ctk.CTk):
         
     def vrai_liste_des_amis(self):
         """Cette fonction va nous aider à choisir la vraie liste des amis à cause de connexion ancien """
-        if self.me == True :
-            return self.begin.instance.liste_des_amis
-        elif self.me == False:
-            return self.deuxieme_instance.liste_des_amis
-        else:
-            pass
+        try:
+            if self.begin.instance.liste_des_amis:
+                return self.begin.instance.liste_des_amis
+            elif self.deuxieme_instance.liste_des_amis:
+                return self.deuxieme_instance.liste_des_amis
+        except:
+            return None 
+        
 
     #Le principe consiste à ne pas packer les boutons des frames de messagerie, mais à packet d'autre leurres à la place dans la frame de recherche pour la recherche
 
@@ -726,67 +790,86 @@ class app(ctk.CTk):
         self.liste_amis = self.vrai_liste_des_amis()
 
         #logging.info(str(self.liste_amis)) 
-        for element in self.liste_amis:
-            self.verificateur = list(self.base_de_fenetre.keys())
+        try:
+            for element in self.liste_amis:
+                self.verificateur = list(self.base_de_fenetre.keys())
 
-            if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
-                if element[1].lower() == self.name.lower() or element[1]=='messagerie01234' :
-                    pass
-                elif element[1].lower() != self.name.lower() or element[1]!='messagerie01234':
-                    ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
-                    ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
+                if element[1] in self.verificateur and element[0]=='actif'  : #C'est l'élement 1 que j'ajoute à mon dictionnaire 
+                    if element[1].lower() == self.name.lower() or element[1]=='messagerie01234' :
+                        pass
+                    elif element[1].lower() != self.name.lower() or element[1]!='messagerie01234':
+                        ajout = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
+                        ajout[2].configure(text=self.obtenir_nom(element[1]) +'(En ligne)')
+                    
                 
-            
-            elif element[1].lower() == self.name.lower() and element[0]=='actif':
-                
-                a = fenetre(self,self.instance,element[1])
-                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
-                b.pack(fill='x') 
-                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
-                #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
-                c = ctk.CTkLabel(a,text='Vous ',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
-                c.pack(fill = 'x')
-                #Ajout à la base de fenêtre 
-                self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire  
-                a.auto = False # Il ne peut plus s'écrire à lui-même 
-                #Configuration de la fonction du bouton 
-                d = element[1]
-                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
-                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
-                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
-                self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
-                self.begin.cadre.place_forget()
-                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
-
-            elif element[1] == 'messagerie01234' and element != self.name and element[0]=="actif":
-                a = fenetre(self,self.instance,element[1])
-                #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
-                c = ctk.CTkLabel(a,text="Messagerie NCZ",font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
-                c.pack(fill = 'x')
-                b =ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text="Messagerie NCZ") 
-                # b.pack(fill='x') Il ne faut pas les packer tout de suite 
-                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
-                
-                #Ajout à la base de fenêtre 
-                self.base_de_fenetre[element[1]] = (a,b,c)#x parce que c'est une variable temporaire 
-                a.entree.place_forget()
-                a.bouton_envoyer.place_forget()
-                ctk.CTkLabel(a.frame_command,text='Vous ne pouvez pas repondre à cette discussion',wraplength=200,text_color='blue',fg_color='white',font=('Helvetica',20)).place(relx=0,rely=0,relheight=1,relwidth=1)
-                #Configuration de la fonction du bouton 
-                d = element[1]
-                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
-                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
-                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
-                self.authentifiation() #C'est pour augmenter les chances d'exécution de cette fonction 
-
-            elif element[0] == 'left' and element[1]!='messagerie01234' and element[1].lower()!=self.name.lower() :
-                supprimer = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
-                if  supprimer:
-                    supprimer[2].configure(text=element[1] +' (Déconnecté)')
-                else:
-                    a = fenetre(self,self.instance,element[1])
+                elif element[1].lower() == self.name.lower() and element[0]=='actif':
+                    
+                    a = fenetre(self.frame_all,self.instance,element[1])
+                    b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=f'{element[1].capitalize()} (Vous )')
+                    b.pack(fill='x') 
+                    f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
                     #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
-                    c = ctk.CTkLabel(a,text=element[1].capitalize()+'(Déconnecté)',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
+                    c = ctk.CTkLabel(a,text='Vous ',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
+                    c.pack(fill = 'x')
+                    #Ajout à la base de fenêtre 
+                    self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire  
+                    a.auto = False # Il ne peut plus s'écrire à lui-même 
+                    #Configuration de la fonction du bouton 
+                    d = element[1]
+                    b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                    self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                    f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
+                    self.authentification() #C'est pour augmenter les chances d'exécution de cette fonction 
+                    self.begin.cadre.place_forget()
+                    self.after_cancel(self.begin.animer)
+                    self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
+
+                elif element[1] == 'messagerie01234' and element != self.name and element[0]=="actif":
+                    a = fenetre(self.frame_all,self.instance,element[1])
+                    #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
+                    c = ctk.CTkLabel(a,text="Messagerie NCZ",font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
+                    c.pack(fill = 'x')
+                    b =ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text="Messagerie NCZ") 
+                    # b.pack(fill='x') Il ne faut pas les packer tout de suite 
+                    f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                    
+                    #Ajout à la base de fenêtre 
+                    self.base_de_fenetre[element[1]] = (a,b,c)#x parce que c'est une variable temporaire 
+                    a.entree.place_forget()
+                    a.bouton_envoyer.place_forget()
+                    ctk.CTkLabel(a.frame_command,text='Vous ne pouvez pas repondre à cette discussion',wraplength=200,text_color='blue',fg_color='white',font=('Helvetica',20)).place(relx=0,rely=0,relheight=1,relwidth=1)
+                    #Configuration de la fonction du bouton 
+                    d = element[1]
+                    b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                    self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                    f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
+                    self.authentification() #C'est pour augmenter les chances d'exécution de cette fonction 
+
+                elif element[0] == 'left' and element[1]!='messagerie01234' and element[1].lower()!=self.name.lower() :
+                    supprimer = self.base_de_fenetre.get(element[1]) #Ici, on recueille les élements dont nous avons besoin 
+                    if  supprimer:
+                        supprimer[2].configure(text=element[1] +' (Déconnecté)')
+                    else:
+                        a = fenetre(self.frame_all,self.instance,element[1])
+                        #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
+                        c = ctk.CTkLabel(a,text=element[1].capitalize()+'(Déconnecté)',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
+                        c.pack(fill = 'x')
+                        b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
+                        # b.pack(fill='x') Il ne faut pas les packer tout de suite 
+                        f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
+                        
+                        #Ajout à la base de fenêtre 
+                        self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
+                        #Configuration de la fonction du bouton 
+                        d = element[1]
+                        b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
+                        self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
+                        f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
+        
+                elif element[1] not in self.verificateur and element[1].lower()!=self.name.lower():
+                    a = fenetre(self.frame_all,self.instance,element[1])
+                    #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
+                    c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
                     c.pack(fill = 'x')
                     b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
                     # b.pack(fill='x') Il ne faut pas les packer tout de suite 
@@ -795,29 +878,13 @@ class app(ctk.CTk):
                     #Ajout à la base de fenêtre 
                     self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
                     #Configuration de la fonction du bouton 
+                    
                     d = element[1]
                     b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
                     self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
                     f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
-    
-            elif element[1] not in self.verificateur and element[1].lower()!=self.name.lower():
-                a = fenetre(self,self.instance,element[1])
-                #Ici, on créer un label pour pouvoir afficher le nom de la messagerie en haut 
-                c = ctk.CTkLabel(a,text=element[1].capitalize()+'(En Ligne )',font=('Helvetica',20),corner_radius=10,fg_color='blue',text_color='white')
-                c.pack(fill = 'x')
-                b = ctk.CTkButton(self.boite_1,font=('Helvetica',14),text_color='blue',fg_color='white',border_color='blue',hover_color="#B5C4D4",border_width=2,text=element[1].capitalize())
-                # b.pack(fill='x') Il ne faut pas les packer tout de suite 
-                f = ctk.CTkButton(self.frame_de_recherche,text=self.obtenir_nom(element[1]),text_color='blue',fg_color='white',corner_radius=10,border_color='blue',border_width=1)
-                
-                #Ajout à la base de fenêtre 
-                self.base_de_fenetre[element[1]] = (a,b,c) #x parce que c'est une variable temporaire 
-                #Configuration de la fonction du bouton 
-                
-                d = element[1]
-                b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
-                self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
-                f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
-
+        except:
+            pass 
         self.after(10,self.creation_fenetre_specifique)
             
     def attribution_des_messages(self):
@@ -833,10 +900,55 @@ class app(ctk.CTk):
                 self.instance.msg_decoder = None
                 #Ici, notre fonction spéciale 
                 self.coloration_message(destinataire) #Pour packer la fenêtre 
-        except:
+            elif self.instance.msg_decoder == False:
+                self.frame_all.place_forget()
+                self.begin.cadre.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+                self.begin.label.pack_forget()
+                self.begin.actualiser.pack(expand = 1,anchor = 'center')
+                self.begin.new.pack(expand = 1,anchor = 'center')
+                self.deuxieme_instance.verification = False 
+        except TypeError:
+            pass
+        except AttributeError:
             pass
         finally:
             self.after(10,self.attribution_des_messages)
+
+    def menage(self):
+        """Cette fonction va nous permettre de faire le ménage des instances"""
+        try:
+            del self.instance,self.deuxieme_instance
+        except NameError:
+            pass 
+        except AttributeError:
+            pass 
+    
+        
+    def fonction_bouton_actualiser(self):
+        """Cette fonction va me permettre de faire la fonction du bouton actualiser pour rédemarrer la connexion"""
+        try:
+            self.menage()
+            if self.me == True:
+                self.fonction_du_bouton_11_second()
+                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
+                self.authentification()
+                
+            if self.me == False:
+                self.fonction_bouton_8_second()
+                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
+                self.authentification()
+                
+                
+        except ConnectionRefusedError:
+            
+            self.begin.new.configure(text='Réessayer\n Erreur de connexion') 
+            self.begin.cadre.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+
+        except socket.gaierror:
+            
+            self.begin.new.configure(text='Réessayer\n Erreur de connexion')
+            self.begin.cadre.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+            
 
     def coloration_message(self,nom):
         """Cette fonction va me permettre de colorier le nom du bouton au cas où un message viendrait  """
@@ -869,6 +981,7 @@ class app(ctk.CTk):
         for i in liste_des_boutons:
             i.configure(text_color = 'blue',fg_color = 'white',hover_color="#B5C4D4")
         liste_des_boutons.clear()
+    
 
     def recherche_1(self):
         """Cette fonction va nous permettre de rechercher une frame de discussion"""
@@ -904,7 +1017,7 @@ class app(ctk.CTk):
             else:
                 self.label_contact.pack(fill = 'x',after = self.label_info)
                 i.pack(fill='x')
-                self.label_info.configure(text='Aucun entrée détectée ')
+                self.label_info.configure(text='Aucune entrée détectée ')
                 
         self.marqueur_0 = self.after(500,self.recherche_1)
     
@@ -923,39 +1036,55 @@ class app(ctk.CTk):
 
     def fonction_bouton_8(self):
         """Cette fonction nous permet de faire la fonction du bouton 8"""
-        if len(self.begin.entree_5.get()) ==0:
-            self.begin.label_11.configure(text="Aucune entrée détectée")
+        try:
+            if len(self.begin.entree_5.get()) ==0:
+                self.begin.label_11.configure(text="Aucune entrée détectée")
 
-        elif 0<len(self.begin.entree_5.get())<4:
-            self.begin.label_11.configure(text="Caractère inférieurs à 5")
+            elif 0<len(self.begin.entree_5.get())<4:
+                self.begin.label_11.configure(text="Caractère inférieurs à 5")
 
-        elif len(self.begin.entree_5.get()) >4 :
-            self.begin.label_11.configure(text='')
+            elif len(self.begin.entree_5.get()) >4 :
+                self.begin.label_11.configure(text='')
 
-            if len(self.begin.entree_7.get()) == 0:
-                self.begin.label_6.configure(text="Aucune entrée détectée")
+                if len(self.begin.entree_7.get()) == 0:
+                    self.begin.label_6.configure(text="Aucune entrée détectée")
 
-            elif 0<len(self.begin.entree_7.get())<4:
-                self.begin.label_6.configure(text="Caractère inférieurs à 5")
+                elif 0<len(self.begin.entree_7.get())<4:
+                    self.begin.label_6.configure(text="Caractère inférieurs à 5")
 
-            elif len(self.begin.entree_7.get()) >4 :
-                self.begin.label_6.configure(text='')
-                if self.begin.verification_mot_de_passe(self.begin.entree_5.get(),self.begin.entree_7.get()):
-                    self.begin.label_11.configure(text='')
+                elif len(self.begin.entree_7.get()) >4 :
                     self.begin.label_6.configure(text='')
-                    self.begin.connexion_nouveau()
-                    self.begin.place_forget()
-                    self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
-                    
-                    self.me = False
-                    self.initialisation()
+                    if self.begin.verification_mot_de_passe(self.begin.entree_5.get(),self.begin.entree_7.get()):
+                        self.begin.label_11.configure(text='')
+                        self.begin.label_6.configure(text='')
+                        self.begin.connexion_nouveau()
+                        self.begin.place_forget()
+                        self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                        
+                        self.me = False
+                        self.initialisation()
 
-                else:
-                    self.begin.label_11.configure(text="")
-                    self.begin.label_6.configure(text="Mots de passe différents")
+                    else:
+                        self.begin.label_11.configure(text="")
+                        self.begin.label_6.configure(text="Mots de passe différents")
+        except ConnectionRefusedError:
+            self.begin.label_6.configure(text='Vérifier votre connexion puis réessayer') 
+            self.begin.cadre.place_forget()
+            self.begin.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+            
+        except socket.gaierror:
+            
+            self.begin.label_6.configure(text='Vérifier votre connexion puis réessayer')
+            self.begin.cadre.place_forget()
+            self.begin.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
 
-
-        
+    def fonction_bouton_8_second(self):
+        """Pour l'amélioration de la fonction du bouton 8 rééconnexion """
+        self.initialisation_deconnexion()
+        self.begin.cadre.place_forget()
+        i = Thread(target = self.authentification,daemon =True)
+        i.start()
+        i.join()
 
     def fonction_du_bouton_11(self):
         """Cette fonction va nous permettre de définir la fonction du bouton 11"""
@@ -971,6 +1100,14 @@ class app(ctk.CTk):
                 pass
         else:
             pass 
+
+    def fonction_du_bouton_11_second(self):
+        """Fonction du bouton onze mais en mode réeconnexion """
+        self.initialisation_2_deconnexion()
+        self.begin.cadre.place_forget()
+        i = Thread(target = self.authentification,daemon =True)
+        i.start()
+        i.join()
 
 #Ici, on a l'exécution de notre app
 app()

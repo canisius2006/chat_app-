@@ -31,7 +31,7 @@ class reception:
 
         #Ici, on va envoyer le nom de la personne connecté 
         self.envoyer_identification()
-
+        
     def envoyer_identification(self):
         """Cette fonction va nous permettre d'envoyer notre nom , nos identification en quelque sorte """
         self.message = str(self.nom)
@@ -63,6 +63,8 @@ class reception:
             #         f.write(str(self.liste_des_amis )+str('\n'))
     def provoquer_rupture(self):
         """Cette fonction va nous permettre de provoquer une déconnexion brutale"""
-        self.sock.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack('ii',1,0))
-        self.sock.close()
-
+        try:
+            self.sock.setsockopt(socket.SOL_SOCKET,socket.SO_LINGER,struct.pack('ii',1,0))
+            self.sock.close()
+        except OSError:
+            pass 
