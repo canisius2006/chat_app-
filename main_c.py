@@ -3,7 +3,7 @@ import socket,time
 from threading import Thread
 import json, module_c#,logging 
 from PIL import Image 
-import ressource
+import ressource#,traceback
 #Définition des nots importantes
 
 
@@ -655,11 +655,12 @@ class app(ctk.CTk):
         #Ici, on initie la réception de message pour celui ci
         Thread(target = self.instance.fonction,daemon = True).start()
         #Ici, je créer un thread pour pouvoir créer les threads spécifiques
-        Thread(target=self.after,args=(10,self.creation_fenetre_specifique),daemon = True).start()
+        Thread(target = self.after,args = (10,self.creation_fenetre_specifique),daemon = True).start()
         #Ici, je créer un thread pour attribution des messages 
         Thread(target=self.after,args=(10,self.attribution_des_messages),daemon=True).start()
         #Je créer un thread pour l'autentification qui est l'envoie de message 
         self.me = False 
+        self.instance_1 = True 
         i = Thread(target = self.authentification)
         i.start()
         i.join()
@@ -679,6 +680,7 @@ class app(ctk.CTk):
 
         #Je créer un thread pour l'autentification qui est l'envoie de message 
         self.me = False 
+        self.instance_1 = True 
         i = Thread(target = self.authentification)
         i.start()
         i.join()
@@ -696,7 +698,7 @@ class app(ctk.CTk):
         #Ici, on initie la réception de message pour celui ci
         Thread(target = self.instance.fonction,daemon = True).start()
         #Ici, je créer un thread pour pouvoir créer les threads spécifiques
-        Thread(target=self.after,args=(10,self.creation_fenetre_specifique),daemon = True).start()
+        Thread(target = self.after,args = (10,self.creation_fenetre_specifique),daemon = True).start()
         #Ici, je créer un thread pour attribution des messages 
         Thread(target=self.after,args=(10,self.attribution_des_messages),daemon=True).start()
         #Je créer un thread pour l'autentification qui est l'envoie de message 
@@ -707,6 +709,7 @@ class app(ctk.CTk):
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
         self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
+        self.instance_1 = False 
     
     def initialisation_2_deconnexion(self):
         """Cette fonction fait la connexion en cas de déconnexion """ 
@@ -720,8 +723,8 @@ class app(ctk.CTk):
         i.start()
         i.join()
         
-        self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
-
+        self.me = False #Cette variable va nous permettre de savoir si module_c est là ou pas 
+        self.instance_1 = False 
 
     def authentification(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
@@ -774,13 +777,14 @@ class app(ctk.CTk):
         
     def vrai_liste_des_amis(self):
         """Cette fonction va nous aider à choisir la vraie liste des amis à cause de connexion ancien """
-        try:
-            if self.begin.instance.liste_des_amis:
-                return self.begin.instance.liste_des_amis
-            elif self.deuxieme_instance.liste_des_amis:
-                return self.deuxieme_instance.liste_des_amis
-        except:
+       
+        if self.me == True:
+            return self.begin.instance.liste_des_amis
+        elif self.me == False:
+            return self.deuxieme_instance.liste_des_amis
+        else:
             return None 
+        
         
 
     #Le principe consiste à ne pas packer les boutons des frames de messagerie, mais à packet d'autre leurres à la place dans la frame de recherche pour la recherche
@@ -788,7 +792,7 @@ class app(ctk.CTk):
     def creation_fenetre_specifique(self):
         """Cette fonction va nous permettre de créer une fenêtre pour chaque connexion"""
         self.liste_amis = self.vrai_liste_des_amis()
-
+        #print(self.liste_amis)
         #logging.info(str(self.liste_amis)) 
         try:
             for element in self.liste_amis:
@@ -883,7 +887,7 @@ class app(ctk.CTk):
                     b.configure(command = lambda d = d ,b = b :self.fonction_bouton(d,b))
                     self.liste_des_leurres.append(f) #Ici, on l'ajoute à la liste des leurres 
                     f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
-        except:
+        except Exception as e:
             pass 
         self.after(10,self.creation_fenetre_specifique)
             
@@ -928,12 +932,12 @@ class app(ctk.CTk):
         """Cette fonction va me permettre de faire la fonction du bouton actualiser pour rédemarrer la connexion"""
         try:
             self.menage()
-            if self.me == True:
+            if self.instance_1 == False:
                 self.fonction_du_bouton_11_second()
                 self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
                 self.authentification()
                 
-            if self.me == False:
+            if self.instance_1 == True:
                 self.fonction_bouton_8_second()
                 self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
                 self.authentification()
@@ -1060,10 +1064,9 @@ class app(ctk.CTk):
                         self.begin.connexion_nouveau()
                         self.begin.place_forget()
                         self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
-                        
-                        self.me = False
+                
                         self.initialisation()
-
+                        
                     else:
                         self.begin.label_11.configure(text="")
                         self.begin.label_6.configure(text="Mots de passe différents")
@@ -1093,9 +1096,9 @@ class app(ctk.CTk):
                 self.begin.connexion_ancien()
                 self.begin.place_forget()
                 self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
-                
-                self.me = True 
+         
                 self.initialisation_2()
+               
             else:
                 pass
         else:
