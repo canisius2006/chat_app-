@@ -1,5 +1,5 @@
 import customtkinter as ctk
-import socket,time
+import socket,time,sys
 from threading import Thread
 import json, module_c#,logging 
 from PIL import Image 
@@ -33,6 +33,13 @@ class accueil(ctk.CTkFrame):
         self.illusoire = ressource.mot_hasard() 
         self.illusoire_1 = f"{self.illusoire}/././ok/././0"
         self.bienvenue()
+        self.bindage()
+
+    def bindage(self):
+        """Cette fonction va nous permettre de binder certains elements"""
+        self.entree_8.bind('<Return>',self.fonction_du_bouton_13_event)
+        self.entree_3.bind('<Return>',self.fonction_bouton_4_event)
+        
 
     def demande(self):
         """Cette fonction va nous permettre de faire l'ouverture, c'est à dire demander l'ip"""
@@ -171,7 +178,7 @@ class accueil(ctk.CTkFrame):
         liste_1 = []
         try:
             if nom:
-                if self.liste_disponible:
+                if len(self.liste_disponible)>0:
                     self.label_9.configure(text="")
                     for i, j in self.liste_disponible:
                         if nom.lower().strip() == j.lower().strip():
@@ -182,10 +189,12 @@ class accueil(ctk.CTkFrame):
                             elif i.lower().strip() == 'left':
                                 self.label_9.configure(text=f"Mot de passe, {nom.capitalize()}")
                                 liste.append(nom)
+                                self.entree_4.focus()
                             
-                            
-                        elif len(liste_1):
-                            self.label_9.configure(text="Rien trouvé dans la base ") 
+                        else:
+                            pass     
+                    if len(liste)==0 and len(liste_1) == 0:
+                        self.label_9.configure(text="Rien trouvé dans la base ") 
                 else:
                     self.label_9.configure(text="Rien trouvé dans la base ")        
             else:
@@ -204,7 +213,7 @@ class accueil(ctk.CTkFrame):
             self.label_10.configure(text='Aucun mot de passe détectée')  
             return False
          
-        elif 0<len(password)<4:
+        elif 0<len(password)<5:
             self.label_10.configure(text='Caractères inférieurs à 5')  
             return False 
         
@@ -261,7 +270,10 @@ class accueil(ctk.CTkFrame):
                 self.label_5.configure(text='Ce nom a déjà été pris')
         else:
             self.label_5.configure(text='Aucun nom détecté')
-            
+
+    def fonction_bouton_4_event(self,event):
+        """Cette fonction va nous permettre de faire l'event de la fonction """
+        self.fonction_bouton_4()       
 
     def fonction_bouton_7(self):
         """Cette fonction va nous permettre de faire la fonction du bouton voir et cacher"""
@@ -324,8 +336,11 @@ class accueil(ctk.CTkFrame):
         except socket.gaierror:
             self.info_label.configure(text='Vérifier votre connexion puis réessayer')
 
-        
+    def fonction_du_bouton_13_event(self,event):
+        """Cette fonction va nous permettre de faire le bind de la fonction 13"""
+        self.fonction_bouton_13()
 
+    
     def attribution_des_fonctions(self):
         """Cette fonction va nous permettre d'attribuer les fonctions """
         
@@ -638,7 +653,12 @@ class app(ctk.CTk):
         self.begin.bouton_8.configure(command=lambda:Thread(target=self.fonction_bouton_8,daemon=True).start())
         self.begin.bouton_11.configure(command=lambda:Thread(target=self.fonction_du_bouton_11,daemon=True).start())
         self.begin.actualiser.configure(command = lambda:Thread(target = self.fonction_bouton_actualiser,daemon = True).start())
-    
+        #Des éléments bind ici
+        self.begin.entree_5.bind('<Return>',self.fonction_bouton_8_event)
+        self.begin.entree_7.bind("<Return>",self.fonction_bouton_8_event)
+        self.begin.entree_4.bind('<Return>',self.fonction_du_bouton_11_event)
+        self.begin.entree_6.bind('<Return>',self.fonction_du_bouton_11_event)
+
     def initialisation(self):
         """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions"""
         self.name_1 = self.begin.text_de_connexion
@@ -777,13 +797,15 @@ class app(ctk.CTk):
         
     def vrai_liste_des_amis(self):
         """Cette fonction va nous aider à choisir la vraie liste des amis à cause de connexion ancien """
-       
-        if self.me == True:
-            return self.begin.instance.liste_des_amis
-        elif self.me == False:
-            return self.deuxieme_instance.liste_des_amis
-        else:
-            return None 
+        try:
+            if self.me == True:
+                return self.begin.instance.liste_des_amis
+            elif self.me == False:
+                return self.deuxieme_instance.liste_des_amis
+            else:
+                return None 
+        except:
+            pass 
         
         
 
@@ -1044,16 +1066,17 @@ class app(ctk.CTk):
             if len(self.begin.entree_5.get()) ==0:
                 self.begin.label_11.configure(text="Aucune entrée détectée")
 
-            elif 0<len(self.begin.entree_5.get())<4:
+            elif 0<len(self.begin.entree_5.get())<5:
                 self.begin.label_11.configure(text="Caractère inférieurs à 5")
 
             elif len(self.begin.entree_5.get()) >4 :
                 self.begin.label_11.configure(text='')
+                self.begin.entree_7.focus()
 
                 if len(self.begin.entree_7.get()) == 0:
                     self.begin.label_6.configure(text="Aucune entrée détectée")
 
-                elif 0<len(self.begin.entree_7.get())<4:
+                elif 0<len(self.begin.entree_7.get())<5:
                     self.begin.label_6.configure(text="Caractère inférieurs à 5")
 
                 elif len(self.begin.entree_7.get()) >4 :
@@ -1081,6 +1104,10 @@ class app(ctk.CTk):
             self.begin.cadre.place_forget()
             self.begin.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
 
+    def fonction_bouton_8_event(self,event):
+        """Cette fonction va nous permettre de faire l'event de cette fonction"""
+        self.fonction_bouton_8()
+
     def fonction_bouton_8_second(self):
         """Pour l'amélioration de la fonction du bouton 8 rééconnexion """
         self.initialisation_deconnexion()
@@ -1103,6 +1130,10 @@ class app(ctk.CTk):
                 pass
         else:
             pass 
+        
+    def fonction_du_bouton_11_event(self,event):
+        """Cette fonction va nous permettre de faire le bind sur les entree"""
+        self.fonction_du_bouton_11()
 
     def fonction_du_bouton_11_second(self):
         """Fonction du bouton onze mais en mode réeconnexion """
@@ -1113,4 +1144,7 @@ class app(ctk.CTk):
         i.join()
 
 #Ici, on a l'exécution de notre app
-app()
+try:
+    app()
+except RuntimeError:
+    sys.exit()
