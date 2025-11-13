@@ -454,6 +454,8 @@ class reception:
             
         except ConnectionResetError:
             self.msg_decoder = False 
+        except OSError:
+            self.msg_decoder = False
            
         
 
@@ -690,22 +692,6 @@ class app(ctk.CTk):
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
 
-    def initialisation_deconnexion(self):
-        """Cette fonction va nous permettre d'initialiser les classes et fonctions essentielles pour toutes les classes et fonctions après la déconnexion""" 
-        #Première instance 
-        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
-        #Deuxième instance 
-        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
-    
-        #Ici, on initie la réception de message pour celui ci
-        Thread(target = self.instance.fonction,daemon = True).start()
-
-        #Je créer un thread pour l'autentification qui est l'envoie de message 
-        self.me = False 
-        self.instance_1 = True 
-        i = Thread(target = self.authentification)
-        i.start()
-        i.join()
         
 
     def initialisation_2(self):
@@ -733,21 +719,6 @@ class app(ctk.CTk):
         self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
         self.instance_1 = False 
     
-    def initialisation_2_deconnexion(self):
-        """Cette fonction fait la connexion en cas de déconnexion """ 
-        #Première instance 
-        self.name_1 = self.name_1.replace('2','1')
-        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
-        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
-        #Ici, on initie la réception de message pour celui ci
-        Thread(target = self.instance.fonction,daemon = True).start() 
-        #Je créer un thread pour l'autentification qui est l'envoie de message 
-        i = Thread(target = self.authentification)
-        i.start()
-        i.join()
-        
-        self.me = False #Cette variable va nous permettre de savoir si module_c est là ou pas 
-        self.instance_1 = False 
 
     def authentification(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
@@ -957,26 +928,9 @@ class app(ctk.CTk):
         """Cette fonction va me permettre de faire la fonction du bouton actualiser pour rédemarrer la connexion"""
         try:
             self.menage()
-            if self.instance_1 == False:
-                self.fonction_du_bouton_11_second()
-                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
-                self.authentification()
-                
-            if self.instance_1 == True:
-                self.fonction_bouton_8_second()
-                self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
-                self.authentification()
-                
-                
-        except ConnectionRefusedError:
-            
-            self.begin.new.configure(text='Réessayer\n Erreur de connexion') 
-            self.begin.cadre.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
-
-        except socket.gaierror:
-            
-            self.begin.new.configure(text='Réessayer\n Erreur de connexion')
-            self.begin.cadre.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+            self.begin.frame_6.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)  
+        except:
+            pass 
             
 
     def coloration_message(self,nom):
@@ -1111,13 +1065,7 @@ class app(ctk.CTk):
         """Cette fonction va nous permettre de faire l'event de cette fonction"""
         self.fonction_bouton_8()
 
-    def fonction_bouton_8_second(self):
-        """Pour l'amélioration de la fonction du bouton 8 rééconnexion """
-        self.initialisation_deconnexion()
-        self.begin.cadre.place_forget()
-        i = Thread(target = self.authentification,daemon =True)
-        i.start()
-        i.join()
+    
 
     def fonction_du_bouton_11(self):
         """Cette fonction va nous permettre de définir la fonction du bouton 11"""
@@ -1138,13 +1086,6 @@ class app(ctk.CTk):
         """Cette fonction va nous permettre de faire le bind sur les entree"""
         self.fonction_du_bouton_11()
 
-    def fonction_du_bouton_11_second(self):
-        """Fonction du bouton onze mais en mode réeconnexion """
-        self.initialisation_2_deconnexion()
-        self.begin.cadre.place_forget()
-        i = Thread(target = self.authentification,daemon =True)
-        i.start()
-        i.join()
 
 #Ici, on a l'exécution de notre app
 try:
