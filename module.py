@@ -72,7 +72,7 @@ class connexion:
                 if self.recu_1:
                     self.base_de_connexion[self.recu_1[0]] = connexionner
                     if self.recu_1[2].strip() == '0': #Connexion pour analyser le terrain d'abord 
-                        self.information = self.recu_1[0] #L'option 1 contient le nom de la personne 
+                        self.information = self.recu_1[0] #L'option 0 contient le nom de la personne 
                         
                         #print('cool')
                     elif self.recu_1[2].strip() == '1': #L'option 1 correspond a signin , c'est à dire qu'on essaie de s'inscrire :
@@ -155,10 +155,21 @@ class connexion:
             except ConnectionResetError or BrokenPipeError:
      
                 self.liste_connexion.remove((element,identifiant))
-
+                self.supprimer_de_la_liste(self.liste_2,identifiant)
+                
             except ValueError:
                 pass
                 
             except IndexError:
                 pass #Cet erreur au cas la méthode pop ne marche pas 
                                      
+    def supprimer_de_la_liste(self,liste,nom):
+        """Cette fonction va me permettre de supprimer de la liste"""
+        try:
+            if ['actif',nom] in liste:
+                liste.remove(['actif',nom])
+            else:
+                pass 
+            liste.append(['left',nom])
+        except:
+            print('Très bizarre')
