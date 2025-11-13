@@ -634,6 +634,7 @@ class app(ctk.CTk):
         self.geometry('500x400')
         self.title('NCZ Mail Client ')
         ctk.set_default_color_theme('blue')
+        ctk.set_appearance_mode('light')
         #Ici, on créer un dictionnaire pour chaque connexion pour pouvoir vite se réperer afin d'attribuer les messages aux bonnes personnes
         self.base_de_fenetre = {} 
         self.fenetre_actuelle = None 
@@ -735,6 +736,7 @@ class app(ctk.CTk):
     def initialisation_2_deconnexion(self):
         """Cette fonction fait la connexion en cas de déconnexion """ 
         #Première instance 
+        self.name_1 = self.name_1.replace('2','1')
         self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
         self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
         #Ici, on initie la réception de message pour celui ci
