@@ -19,7 +19,7 @@ class accueil(ctk.CTkFrame):
         #Ici, on définit la photo qu'on veut packer sur le frame 
         self.picture = ctk.CTkImage(Image.open(self.path),Image.open(self.path),size=(500,400))
         self.ready = True #Une variable qui va nous permettre d'arrêter le thread au bon moment 
-        self.ready_2 = True 
+        self.ready_2 = True ; self.toujours = True #C'est une variable qui va me permettre de savoir s'il faut afficher cadre
         self.debut() #Ici, on fait commence notre animation du début 
         #Ici, on fait le thread pour pouvoir configurer le mode agrandissement 
         Thread(target = self.master.bind,args = ('<Configure>',self.resize),daemon = True ).start()
@@ -820,6 +820,7 @@ class app(ctk.CTk):
                     f.configure(command=lambda b= b,d=d : (b.pack(fill='x'),self.recherche_sortir(),self.fonction_bouton(d,b)))
                     self.authentification() #C'est pour augmenter les chances d'exécution de cette fonction 
                     self.begin.cadre.place_forget()
+                    self.begin.toujours = False 
                     self.after_cancel(self.begin.animer)
                     self.frame_all.place(relx=0,rely = 0,relheight = 1,relwidth = 1)
 
@@ -1044,8 +1045,10 @@ class app(ctk.CTk):
                         self.begin.label_6.configure(text='')
                         self.begin.connexion_nouveau()
                         self.begin.place_forget()
-                        self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
-                
+                        if self.begin.toujours:
+                            self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                        else:
+                            pass
                         self.initialisation()
                         
                     else:
@@ -1074,8 +1077,10 @@ class app(ctk.CTk):
             if self.begin.verification_password():
                 self.begin.connexion_ancien()
                 self.begin.place_forget()
-                self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
-         
+                if self.begin.toujours:
+                    self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                else:
+                    pass
                 self.initialisation_2()
                
             else:
