@@ -44,9 +44,11 @@ class accueil(ctk.CTkFrame):
     def demande(self):
         """Cette fonction va nous permettre de faire l'ouverture, c'est à dire demander l'ip"""
         self.frame_9 = ctk.CTkFrame(self,fg_color='white',corner_radius=10)
-        self.entree_8 = ctk.CTkEntry(self.frame_9,placeholder_text="Entrer l'adresse ip",font=('Times',20),width = 400)
-        self.bouton_13 = ctk.CTkButton(self.frame_9,text='Confirmer')
-        self.info_label = ctk.CTkLabel(self.frame_9,corner_radius=10,font=('Times',20),fg_color='white',text_color='blue',text='')
+        self.englobeur = ctk.CTkFrame(self.frame_9,fg_color='white',corner_radius=10,border_color='blue',border_width=2)
+        self.entree_8 = ctk.CTkEntry(self.englobeur,placeholder_text="Entrer l'adresse ip",font=('Times',20),width = 400)
+        self.bouton_13 = ctk.CTkButton(self.englobeur,text='Confirmer')
+        self.info_label = ctk.CTkLabel(self.englobeur,corner_radius=10,font=('Times',20),fg_color='white',text_color='blue',text='')
+        self.englobeur.pack(anchor='center',expand = True)
         self.entree_8.pack()
         self.bouton_13.pack()
         self.info_label.pack()
@@ -420,7 +422,7 @@ class accueil(ctk.CTkFrame):
 
 
 #On va calibrer le module loggin rapidement 
-#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"D:/Phoenix/projet/messagerie/client/info_{nom}.log")
+#logging.basicConfig(level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s',filename=f"info_{nom}.log")
 #Ici, on fait la classe de l'accueil  et d'entrée des données utilisateur
 class reception:
     """Cette classe va nous permettre de gérer la connexion avec le serveur"""
@@ -620,7 +622,7 @@ class fenetre(ctk.CTkFrame):
 
 
 
-photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
+photo = ressource.chemin_fichier('image.png')
 
 
 
@@ -631,7 +633,6 @@ class app(ctk.CTk):
         super().__init__()
         self.geometry('500x400')
         self.title('NCZ Mail Client ')
-        ctk.set_appearance_mode('system')
         ctk.set_default_color_theme('blue')
         #Ici, on créer un dictionnaire pour chaque connexion pour pouvoir vite se réperer afin d'attribuer les messages aux bonnes personnes
         self.base_de_fenetre = {} 
