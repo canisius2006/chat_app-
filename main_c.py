@@ -1048,7 +1048,7 @@ class app(ctk.CTk):
                         if self.begin.toujours:
                             self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
                         else:
-                            pass
+                            self.frame_all.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
                         self.initialisation()
                         
                     else:
@@ -1080,7 +1080,7 @@ class app(ctk.CTk):
                 if self.begin.toujours:
                     self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
                 else:
-                    pass
+                    self.frame_all.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
                 self.initialisation_2()
                
             else:
