@@ -333,11 +333,12 @@ class accueil(ctk.CTkFrame):
             else:
                 self.info_label.configure(text='Aucune entrée détectée')  
         except ConnectionRefusedError:
-            self.info_label.configure(text='Vérifier votre adresse puis réessayer') 
+            self.info_label.configure(text='Vérifier votre adresse puis réessayer \n ou adresse ip mal écrite') 
 
         except socket.gaierror:
+            self.info_label.configure(text='Vérifier votre connexion puis réessayer \n ou adresse ip mal écrite')
+        except OSError:
             self.info_label.configure(text='Vérifier votre connexion puis réessayer')
-
     def fonction_du_bouton_13_event(self,event):
         """Cette fonction va nous permettre de faire le bind de la fonction 13"""
         self.fonction_bouton_13()
@@ -624,7 +625,7 @@ class fenetre(ctk.CTkFrame):
 
 
 
-photo = ressource.chemin_fichier('image.png')
+photo = ressource.chemin_fichier('D:/Phoenix/projet/messagerie/client/image.png')
 
 
 
@@ -926,11 +927,13 @@ class app(ctk.CTk):
         
     def fonction_bouton_actualiser(self):
         """Cette fonction va me permettre de faire la fonction du bouton actualiser pour rédemarrer la connexion"""
-        try:
-            self.menage()
-            self.begin.frame_6.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)  
-        except:
-            pass 
+        self.instance.msg_decoder = True 
+        self.menage()
+        self.begin.cadre.place_forget()
+        self.begin.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
+        self.begin.frame_6.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)  
+        self.begin.frame_6.lift()
+       
             
 
     def coloration_message(self,nom):
