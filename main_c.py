@@ -502,7 +502,8 @@ class fenetre(ctk.CTkFrame):
         #Ici, on définit nos fonctions bind
         self.les_bind()
         #Un autre créer , à cause de la fonction copier que nous avons fait
-        self.master.bind('<Button-1>',self.fonction_copier_release)
+        Thread(target = self.master.bind,args = ('<Button-1>',self.fonction_copier_release),daemon = True).start()
+        Thread(target = self.master.bind,args = ('<Key>',self.fonction_copier_release),daemon = True).start()
         self.already_send = False 
         
     def sur_ecran(self):
@@ -586,9 +587,9 @@ class fenetre(ctk.CTkFrame):
         """Cette fonction va nous permettre de supprimer un message"""
         if label.cget('fg_color') != 'white':
             label.configure(text='Vous avez supprimer ce message pour vous seul',font=('Helvetica',10,'italic'),text_color='black',fg_color='white')
-            self.popup_bouton_1.configure(state='Disabled')
+
             #Un autre créer , à cause de la fonction copier que nous avons fait
-            self.master.bind('<Button-1>',self.fonction_copier_release)
+            self.popup.pack_forget()
         else:
             label.pack_forget()
              
@@ -597,17 +598,15 @@ class fenetre(ctk.CTkFrame):
         """Cette fonction va nous permettre de copier le message dans les labels"""
         base = label.pack_info()
         self.popup.pack(after=label,side=base['side'],anchor=base['anchor'])
-        self.popup_bouton_1.configure(command=lambda:self.fonction_du_bouton_1(label),state='Normal')
-        self.popup_bouton_2.configure(command=lambda:self.fonction_du_bouton_2(label),state='Normal')
+        self.popup_bouton_1.configure(command=lambda:self.fonction_du_bouton_1(label))
+        self.popup_bouton_2.configure(command=lambda:self.fonction_du_bouton_2(label))
         #Un autre créer , à cause de la fonction copier que nous avons fait
-        self.master.bind('<Button-1>',self.fonction_copier_release)
+        self.popup.pack_forget()
 
     def fonction_copier_release(self,event):
         """Cette fonction correspond au leave et on fera un bind sur la fenêtre entière pour ça"""
-        try: # Un bloc try ici pour éviter les malentendus 
-            self.popup.pack_forget()
-        except:
-            pass 
+        self.popup.pack_forget()
+        
     #--------------------------------------------------------------------------------
     def afficher_message_recu(self,message_recu):
         """Cette fonction va nous permettre d'afficher les messages reçus sur l'écran"""
