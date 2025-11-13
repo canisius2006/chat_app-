@@ -502,8 +502,7 @@ class fenetre(ctk.CTkFrame):
         #Ici, on définit nos fonctions bind
         self.les_bind()
         #Un autre créer , à cause de la fonction copier que nous avons fait
-        Thread(target = self.master.bind,args = ('<Button-1>',self.fonction_copier_release),daemon = True).start()
-        Thread(target = self.master.bind,args = ('<Key>',self.fonction_copier_release),daemon = True).start()
+        self.master.bind('<Button-1>',self.fonction_copier_release)
         self.already_send = False 
         
     def sur_ecran(self):
@@ -581,7 +580,7 @@ class fenetre(ctk.CTkFrame):
         texte = label.cget('text')
         self.master.clipboard_clear()
         self.master.clipboard_append(texte)
-        
+        self.popup.pack_forget()
 
     def fonction_du_bouton_2(self,label:ctk.CTkLabel):
         """Cette fonction va nous permettre de supprimer un message"""
@@ -598,10 +597,10 @@ class fenetre(ctk.CTkFrame):
         """Cette fonction va nous permettre de copier le message dans les labels"""
         base = label.pack_info()
         self.popup.pack(after=label,side=base['side'],anchor=base['anchor'])
-        self.popup_bouton_1.configure(command=lambda:self.fonction_du_bouton_1(label))
-        self.popup_bouton_2.configure(command=lambda:self.fonction_du_bouton_2(label))
+        self.popup_bouton_1.configure(command=lambda:self.fonction_du_bouton_1(label),state='Normal')
+        self.popup_bouton_2.configure(command=lambda:self.fonction_du_bouton_2(label),state='Normal')
         #Un autre créer , à cause de la fonction copier que nous avons fait
-        self.popup.pack_forget()
+        
 
     def fonction_copier_release(self,event):
         """Cette fonction correspond au leave et on fera un bind sur la fenêtre entière pour ça"""
