@@ -929,8 +929,8 @@ class app(ctk.CTk):
         self.menage()
         self.begin.cadre.place_forget()
         self.begin.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
-        self.begin.frame_6.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)  
-        self.begin.frame_6.lift()
+        self.begin.frame_9.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)  
+        self.begin.frame_9.lift()
        
             
 
