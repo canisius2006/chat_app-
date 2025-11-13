@@ -157,6 +157,7 @@ class connexion:
                 self.liste_connexion.remove((element,identifiant))
                 self.supprimer_de_la_liste(self.liste_2,identifiant)
                 
+                
             except ValueError:
                 pass
                 
@@ -165,8 +166,11 @@ class connexion:
                                      
     def supprimer_de_la_liste(self,liste,nom):
         """Cette fonction va me permettre de supprimer de la liste"""
-        if ['actif',nom] in liste:
-            liste.remove(['actif',nom])
+        if '012345' not in nom:
+            if ['actif',nom] in liste:
+                liste.remove(['actif',nom])
+            else:
+                pass 
+            liste.append(['left',nom])
         else:
             pass 
-        liste.append(['left',nom])
