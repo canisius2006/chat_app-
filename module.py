@@ -155,7 +155,7 @@ class connexion:
             except ConnectionResetError or BrokenPipeError:
      
                 self.liste_connexion.remove((element,identifiant))
-                self.to_delete = identifiant #C'est pour permettre au fichier main de supprimer sans générer de conflit 
+                self.supprimer_de_la_liste(self.liste_2,identifiant)
                 
             except ValueError:
                 pass
@@ -163,4 +163,10 @@ class connexion:
             except IndexError:
                 pass #Cet erreur au cas la méthode pop ne marche pas 
                                      
-    
+    def supprimer_de_la_liste(self,liste,nom):
+        """Cette fonction va me permettre de supprimer de la liste"""
+        if ['actif',nom] in liste:
+            liste.remove(['actif',nom])
+        else:
+            pass 
+        liste.append(['left',nom])

@@ -200,29 +200,13 @@ class cerveau:
                             self.instance_connexion.xlist.clear()                            
                             x = self.dictio_important.pop(element)
                             #interagire avec l'autre module 
-                            x.supprimer_de_la_liste(self.instance_connexion_2.liste_2,x.moi)
+                           # x.supprimer_de_la_liste(self.instance_connexion_2.liste_2,x.moi)
                             #Libération des ressources de la mémoire 
                             self.liste_des_chacuns.remove(element)
                             
                             del element,x ,y  
 
-                    elif element == self.instance_connexion_2.to_delete:
-                        #Ici, on le supprime de la base 
-                        y = self.base.pop(self.dictio_important.get(element).moi)
-                        self.instance_connexion.liste_des_ecoutes.remove(element)
-                        self.instance_connexion._liste_secondaire.remove(element[0])
-                        #Ici, on l'éfface de la rlist 
-                        self.instance_connexion.rlist = list(set(self.instance_connexion.rlist) - set(self.instance_connexion.xlist))
-                        self.instance_connexion.xlist.clear()                            
-                        x = self.dictio_important.pop(element)
-                        #interagire avec l'autre module 
-                        x.supprimer_de_la_liste(self.instance_connexion_2.liste_2,x.moi)
-                        #Libération des ressources de la mémoire 
-                        self.liste_des_chacuns.remove(element)
-                        
-                        del element,x ,y  
-                        self.instance_connexion_2.to_delete = None
-                        
+
                     else :
                         classe = chacun(element,self.base)
                         self.liste_des_chacuns.append(element)
