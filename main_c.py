@@ -691,7 +691,26 @@ class app(ctk.CTk):
         self.rechercher.bind('<Return>',self.recherche_entrer)
         self.bouton_unpack.configure(command=self.recherche_sortir)
 
-        
+    def initialisation_second(self):
+        """Cette fonction va me permettre de faire l'initialisation pour la reconnexion"""
+        self.name_1 = self.begin.text_de_connexion
+        self.name = self.name_1.split('/././')[0]
+        self.ip = self.begin.entree_8.get().strip()
+         
+        #Première instance 
+        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
+        #Deuxième instance 
+        self.deuxieme_instance = module_c.reception(self.ip,self.name_1)
+    
+        #Ici, on initie la réception de message pour celui ci
+        Thread(target = self.instance.fonction,daemon = True).start()
+        #Je créer un thread pour l'autentification qui est l'envoie de message 
+        self.me = False 
+        self.instance_1 = True 
+        i = Thread(target = self.authentification)
+        i.start()
+        i.join()
+   
 
     def initialisation_2(self):
         """Cette fonction va nous permettre de faire l'initialisation pour le niveau connecté """
@@ -718,6 +737,21 @@ class app(ctk.CTk):
         self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
         self.instance_1 = False 
     
+    def initialisation_2_second(self):
+        """Cette fonction va nous permettre de faire la fonction pour se reconnecter"""
+        self.name_1 = self.begin.text_de_connexion
+        self.name = self.name_1.split('/././')[0]
+        self.ip = self.begin.entree_8.get()
+        #Première instance 
+        self.instance = reception(self.name,self.ip) #On met en paramètre ce que la personne mettra
+        
+        #Ici, on initie la réception de message pour celui ci
+        Thread(target = self.instance.fonction,daemon = True).start()
+        i = Thread(target = self.authentification)
+        i.start()
+        i.join()
+        self.me = True #Cette variable va nous permettre de savoir qu'on n'a pas utiliser initialisation 1
+        self.instance_1 = False 
 
     def authentification(self):
         #Juste après la conexion avec le socket, on va envoyer notre message de bienvenue 
@@ -971,6 +1005,7 @@ class app(ctk.CTk):
     def recherche_1(self):
         """Cette fonction va nous permettre de rechercher une frame de discussion"""
         self.frame_de_recherche.place(relx=0,rely=0.12,relheight = 0.8,relwidth = 0.48)
+        self.frame_de_recherche.lift()
         get = self.rechercher.get()
 
         for i in self.liste_des_leurres:
@@ -1047,9 +1082,10 @@ class app(ctk.CTk):
                         self.begin.place_forget()
                         if self.begin.toujours:
                             self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                            self.initialisation()
                         else:
                             self.frame_all.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
-                        self.initialisation()
+                            self.initialisation_second()
                         
                     else:
                         self.begin.label_11.configure(text="")
@@ -1079,9 +1115,10 @@ class app(ctk.CTk):
                 self.begin.place_forget()
                 if self.begin.toujours:
                     self.begin.cadre.place(relx = 0,rely = 0,relheight=1,relwidth = 1)
+                    self.initialisation_2()
                 else:
                     self.frame_all.place(relx = 0,rely = 0,relheight = 1,relwidth = 1)
-                self.initialisation_2()
+                    self.initialisation_2_second()
                
             else:
                 pass
